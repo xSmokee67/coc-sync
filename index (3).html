@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="panel-mode" content="public">
+<title>Panel Klanu CoC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Sztab wojenny nocą: granatowe tło, złoto dla klanu głównego, eliksir dla akademii. Pasek boczny + obszar roboczy. */
+  --bg:#10141c; --panel:#171d29; --panel2:#1f2636; --line:#2c3549; --ink:#ece6d6; --muted:#8f98ac;
+  --gold:#f2b53a; --elixir:#c86ae0;
+  --accent:var(--gold); --accent-ink:#1b1306; --accent-soft:rgba(242,181,58,.14);
+  --ok:#4cc27a; --warn:#ef8a3c; --bad:#ec5a55;
+  --display:"Lilita One","Arial Rounded MT Bold",system-ui,sans-serif;
+  --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --cond:"Barlow Condensed","Barlow",system-ui,sans-serif;
+  color-scheme:dark;
+}
+body.academy{--accent:var(--elixir); --accent-ink:#1d0a22; --accent-soft:rgba(200,106,224,.15)}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--display);font-weight:400;letter-spacing:.3px;margin:0;text-wrap:balance}
+h2{font-size:26px}
+h3{font-size:18px}
+a{color:var(--accent)}
+.num,td.n,.tab{font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---------- shell ---------- */
+.app{display:grid;grid-template-columns:220px 1fr;grid-template-rows:auto 1fr;min-height:100%}
+header.top{grid-column:1/-1;display:flex;align-items:center;gap:16px;padding:12px 20px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#151b27,#121722);position:sticky;top:0;z-index:20;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.crest{width:38px;height:38px;flex:none}
+.brand h1{font-size:22px;line-height:1}
+.brand small{display:block;color:var(--muted);font-family:var(--cond);font-size:14px;letter-spacing:.4px}
+.switch{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px;margin-left:auto}
+.switch button{border:0;background:transparent;padding:7px 14px;border-radius:9px;cursor:pointer;font-family:var(--cond);font-weight:600;font-size:16px;color:var(--muted);display:flex;align-items:center;gap:7px}
+.switch button .dot{width:9px;height:9px;border-radius:50%}
+.switch button[aria-pressed="true"]{background:var(--panel2);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+.sync{font-family:var(--cond);font-size:14px;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.sync i{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block}
+.sync.ok i{background:var(--ok)} .sync.busy i{background:var(--accent)} .sync.err i{background:var(--bad)} .sync.demo i{background:var(--warn)}
+
+nav.side{border-right:1px solid var(--line);padding:16px 10px;display:flex;flex-direction:column;gap:2px;position:sticky;top:63px;align-self:start;height:calc(100vh - 63px);overflow:auto}
+nav.side a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;color:var(--muted);text-decoration:none;font-weight:600;font-size:15px}
+nav.side a svg{width:18px;height:18px;flex:none;opacity:.85}
+nav.side a:hover{background:var(--panel);color:var(--ink)}
+nav.side a[aria-current="page"]{background:var(--accent-soft);color:var(--ink);box-shadow:inset 3px 0 0 var(--accent)}
+nav.side a .badge{margin-left:auto}
+nav.side .sep{height:1px;background:var(--line);margin:10px 8px}
+main{padding:22px 26px 60px;min-width:0;max-width:1400px}
+
+@media (max-width:820px){
+  .app{grid-template-columns:1fr}
+  nav.side{position:sticky;top:0;height:auto;flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);padding:8px 10px;background:var(--bg);z-index:15}
+  nav.side a{white-space:nowrap;padding:8px 10px}
+  nav.side a[aria-current="page"]{box-shadow:inset 0 -3px 0 var(--accent)}
+  nav.side .sep{display:none}
+  header.top{position:static;padding:10px 16px}
+  .switch{margin-left:0}
+  main{padding:16px}
+}
+
+/* ---------- building blocks ---------- */
+.pagehead{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.pagehead p{margin:4px 0 0;color:var(--muted)}
+.pagehead .actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+.card > h3{margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card > h3 .sub{font-family:var(--body);font-size:13px;color:var(--muted);margin-left:auto;font-weight:500}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:14px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;position:relative;overflow:hidden}
+.tile .k{font-family:var(--cond);color:var(--muted);font-size:14px;letter-spacing:.5px;text-transform:uppercase}
+.tile .v{font-family:var(--display);font-size:32px;line-height:1.1;margin-top:4px}
+.tile .v small{font-size:17px;color:var(--muted)}
+.tile .s{font-size:13px;color:var(--muted);margin-top:2px}
+.tile.hot{border-color:color-mix(in srgb,var(--accent) 55%,var(--line))}
+.tile.hot::after{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--accent)}
+
+.btn{text-decoration:none;display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--panel2);padding:8px 13px;border-radius:10px;cursor:pointer;font-weight:600;font-size:14px;white-space:nowrap}
+.btn:hover{border-color:#3d4862;background:#252d40}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.pri:hover{filter:brightness(1.07)}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--bad);border-color:rgba(236,90,85,.4)}
+.btn.sm{padding:5px 9px;font-size:13px;border-radius:8px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+body.public button[disabled],body.public a[data-act="tplgo"],body.public .iconbtn{display:none}
+body.public tr.click{cursor:default}
+input:disabled,select:disabled,textarea:disabled{opacity:.6;cursor:not-allowed}
+.iconbtn{border:0;background:transparent;color:var(--muted);cursor:pointer;padding:4px 6px;border-radius:6px}
+.iconbtn:hover{color:var(--ink);background:var(--panel2)}
+
+input[type=text],input[type=number],input[type=search],input[type=date],input[type=datetime-local],select,textarea{background:#121824;border:1px solid var(--line);border-radius:9px;padding:7px 10px;min-width:0}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none}
+textarea{width:100%;resize:vertical;line-height:1.5}
+select{cursor:pointer}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);font-weight:600}
+label.f > input,label.f > select,label.f > textarea{color:var(--ink);font-weight:500;font-size:15px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.row > label.f{flex:1 1 140px}
+.check{display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}
+.check input{width:17px;height:17px;accent-color:var(--accent)}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-family:var(--cond);font-weight:600;font-size:14px;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);background:#141a26;position:sticky;top:0}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:var(--ink)}
+tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:rgba(255,255,255,.02)}
+td.n,th.n{text-align:right}
+td.c,th.c{text-align:center}
+tr.click{cursor:pointer}
+td input[type=number]{width:78px;padding:4px 7px}
+td select{padding:4px 6px}
+.name{font-weight:700}
+.tag{font-family:var(--cond);color:var(--muted);font-size:13px;margin-left:6px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.th{display:inline-flex;align-items:center;justify-content:center;min-width:42px;padding:2px 7px;border-radius:7px;font-family:var(--cond);font-weight:700;font-size:14px;background:#263049;color:#cfd7ea}
+.th.t18,.th.t17{background:#3b2b4d;color:#e7cff5}.th.t16,.th.t15{background:#2c3b52;color:#cde0ff}.th.t14,.th.t13{background:#2a4440;color:#c9f1e4}.th.t12,.th.t11{background:#45391f;color:#f6e1b0}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:99px;font-size:12.5px;font-weight:700;border:1px solid transparent;white-space:nowrap}
+.pill.ok{background:rgba(76,194,122,.13);color:var(--ok);border-color:rgba(76,194,122,.3)}
+.pill.warn{background:rgba(239,138,60,.13);color:var(--warn);border-color:rgba(239,138,60,.3)}
+.pill.bad{background:rgba(236,90,85,.14);color:var(--bad);border-color:rgba(236,90,85,.35)}
+.pill.neu{background:var(--panel2);color:var(--muted);border-color:var(--line)}
+.pill.acc{background:var(--accent-soft);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 40%,transparent)}
+.badge{background:var(--bad);color:#fff;border-radius:99px;font-size:11.5px;padding:1px 7px;font-weight:700}
+.stars{letter-spacing:1px;font-size:15px;white-space:nowrap}
+.stars b{color:var(--gold);font-weight:400}
+.stars i{color:#3a4358;font-style:normal}
+.heroes{display:flex;gap:4px}
+.heroes span{font-family:var(--cond);font-size:13px;background:#141a26;border:1px solid var(--line);border-radius:6px;padding:0 5px;min-width:30px;text-align:center}
+.heroes span.z{color:#4a5368}
+.bar{height:8px;border-radius:99px;background:#232b3c;overflow:hidden}
+.bar > i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.bar.ok > i{background:var(--ok)}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+.list{display:flex;flex-direction:column}
+.list > div{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.list > div:last-child{border-bottom:0}
+.sev{width:4px;align-self:stretch;border-radius:4px;flex:none}
+.sev.bad{background:var(--bad)}.sev.warn{background:var(--warn)}.sev.acc{background:var(--accent)}.sev.neu{background:var(--line)}
+.banner{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:color-mix(in srgb,var(--warn) 12%,var(--panel));border:1px solid rgba(239,138,60,.4);border-radius:12px;padding:10px 14px;margin-bottom:16px;font-size:14px}
+.banner strong{color:var(--warn)}
+.banner .actions{margin-left:auto;display:flex;gap:8px}
+
+/* ---------- war ---------- */
+.scoreboard{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;background:radial-gradient(120% 140% at 50% 0%,var(--accent-soft),transparent 60%),var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px 20px;margin-bottom:14px}
+.side-us,.side-them{display:flex;flex-direction:column;gap:2px}
+.side-them{text-align:right;align-items:flex-end}
+.side-us .cn,.side-them .cn{font-family:var(--display);font-size:20px}
+.bigscore{font-family:var(--display);font-size:44px;line-height:1;display:flex;align-items:center;gap:14px}
+.bigscore .vs{font-size:16px;color:var(--muted)}
+.bigscore .st{color:var(--gold)}
+.center{text-align:center}
+.warcols{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px;align-items:start}
+@media (max-width:1100px){.warcols{grid-template-columns:1fr}}
+.atk{display:flex;align-items:center;gap:5px}
+.atk select.tg{width:64px}
+.atk select.st{width:62px}
+.atk input{width:62px !important}
+.atk.done select.st{border-color:rgba(76,194,122,.5)}
+.atk.miss select.st{border-color:rgba(236,90,85,.5)}
+.emap{display:grid;grid-template-columns:repeat(auto-fill,minmax(82px,1fr));gap:7px}
+.base{border:1px solid var(--line);background:#141a26;border-radius:10px;padding:7px 8px;font-size:13px;display:flex;flex-direction:column;gap:3px}
+.base .p{font-family:var(--display);font-size:16px}
+.base.s3{border-color:rgba(76,194,122,.5);background:rgba(76,194,122,.07)}
+.base.s2{border-color:rgba(242,181,58,.4)}
+.base select{padding:2px 4px;font-size:12.5px}
+
+/* ---------- cwl ---------- */
+.cwl td.cell{padding:4px 5px;text-align:center}
+.cwl td.cell select{width:58px;text-align:center;padding:4px 2px}
+.cwl td.cell select.v3{background:rgba(76,194,122,.16);border-color:rgba(76,194,122,.45)}
+.cwl td.cell select.v2{background:rgba(242,181,58,.12)}
+.cwl td.cell select.vx{background:rgba(236,90,85,.16);border-color:rgba(236,90,85,.45)}
+.cwl td.cell select.vw{background:var(--accent-soft)}
+.cwl tr.bonus td:first-child{box-shadow:inset 3px 0 0 var(--gold)}
+
+/* ---------- modal & toast ---------- */
+.modal-bg{position:fixed;inset:0;background:rgba(5,8,14,.72);display:flex;align-items:flex-start;justify-content:center;padding:6vh 14px;z-index:100;overflow:auto}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;width:min(620px,100%);padding:20px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.modal h3{margin-bottom:14px;font-size:21px}
+.modal .foot{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+.modal .foot .left{margin-right:auto;display:flex;gap:8px;flex-wrap:wrap}
+.stack{display:flex;flex-direction:column;gap:12px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:10px 16px;border-radius:12px;z-index:200;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.loading{display:grid;place-items:center;min-height:50vh;color:var(--muted);text-align:center}
+.chk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:6px;max-height:50vh;overflow:auto;padding:4px}
+.calrow{display:grid;grid-template-columns:92px 1fr;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.calrow:last-child{border-bottom:0}
+.calrow .ev{font-weight:700}
+.thdist{display:flex;flex-direction:column;gap:6px}
+.thdist .r{display:grid;grid-template-columns:50px 1fr 28px;gap:8px;align-items:center;font-size:13px}
+.todo{display:flex;align-items:center;gap:8px;padding:6px 0}
+.todo.done span{text-decoration:line-through;color:var(--muted)}
+.todo span{flex:1}
+pre.msg{white-space:pre-wrap}
+.kbd{font-family:var(--cond);background:#141a26;border:1px solid var(--line);border-radius:5px;padding:0 5px}
+@media (prefers-reduced-motion:no-preference){
+  main > *{animation:rise .28s ease both}
+  @keyframes rise{from{transform:translateY(6px)}to{transform:none}}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <svg class="crest" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2 35 8v11c0 9.5-6.2 16.3-15 19-8.8-2.7-15-9.5-15-19V8z" fill="var(--panel2)" stroke="var(--accent)" stroke-width="2"/><path d="M13 27 27 13M27 27 13 13" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/><circle cx="20" cy="20" r="3.2" fill="var(--accent)"/></svg>
+      <div><h1 id="clanTitle">Panel klanu</h1><small id="clanSub">Clash of Clans · sztab</small></div>
+    </div>
+    <div class="switch" role="group" aria-label="Wybór klanu">
+      <button type="button" data-act="clan" data-id="main" id="sw-main"><span class="dot" style="background:var(--gold)"></span><span id="sw-main-l">Główny</span></button>
+      <button type="button" data-act="clan" data-id="academy" id="sw-academy"><span class="dot" style="background:var(--elixir)"></span><span id="sw-academy-l">Akademia</span></button>
+    </div>
+    <div class="sync" id="sync"><i></i><span>Wczytywanie…</span></div>
+  </header>
+  <nav class="side" id="nav"></nav>
+  <main id="main"><div class="loading">Wczytywanie danych klanu…</div></main>
+</div>
+<div id="modalRoot"></div>
+
+<script>
+"use strict";
+const PUBLIC=(document.querySelector('meta[name="panel-mode"]')||{}).content==='public';
+/* =========================================================
+   Stałe gry
+   ========================================================= */
+const HEROES=[
+  ['bk','BK','Barbarian King (Król Barbarzyńców)',7],
+  ['aq','AQ','Archer Queen (Królowa Łuczniczek)',8],
+  ['mp','MP','Minion Prince',9],
+  ['gw','GW','Grand Warden (Wielki Strażnik)',11],
+  ['rc','RC','Royal Champion (Królewska Czempionka)',13],
+  ['dd','DD','Dragon Duke',15]
+];
+const ROLES={leader:'Przywódca',coleader:'Współprzywódca',elder:'Starszy',member:'Członek'};
+const ROLE_ORDER={leader:0,coleader:1,elder:2,member:3};
+const WAR_SIZES=[5,10,15,20,25,30,35,40,45,50];
+const STRIKE_REASONS=['Nieużyty atak w wojnie','Nieużyty atak w CWL','Atak w zły cel / poza planem','Słaby atak (bez przygotowania)','Brak donacji','Brak aktywności','Brak punktów w Igrzyskach','Brak ataków w Raid Weekend','Zachowanie na czacie','Inne'];
+const CG_PLAYER_MAX=10000, CG_CLAN_MAX=50000, CG_TIERS=[3000,7500,12000,18000,30000,50000];
+const NAV=[
+  ['pulpit','Pulpit','<path d="M3 13h8V3H3zm10 8h8V11h-8zM3 21h8v-6H3zm10-18v6h8V3z"/>'],
+  ['czlonkowie','Członkowie','<path d="M16 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm-8 0a3 3 0 1 0-3-3 3 3 0 0 0 3 3zm0 2c-2.7 0-6 1.3-6 3.5V19h7v-2.5c0-1.2.5-2.3 1.4-3.2A9 9 0 0 0 8 13zm8 0c-3 0-7 1.5-7 4v2h14v-2c0-2.5-4-4-7-4z"/>'],
+  ['wojna','Wojna','<path d="M6.9 3 3 6.9l4.3 4.3-2.1 2.1 1.4 1.4 2.1-2.1 7.8 7.8L21 21l-.6-4.5-7.8-7.8 2.1-2.1-1.4-1.4-2.1 2.1z"/>'],
+  ['historia','Historia i statystyki','<path d="M4 20h16v-2H4zm1-4h3V9H5zm5 0h3V4h-3zm5 0h3v-5h-3z"/>'],
+  ['cwl','Liga (CWL)','<path d="M17 4V2H7v2H3v4a4 4 0 0 0 4 4h.3A5 5 0 0 0 11 15v3H8v2h8v-2h-3v-3a5 5 0 0 0 3.7-3H17a4 4 0 0 0 4-4V4zM5 8V6h2v4a2 2 0 0 1-2-2zm14 0a2 2 0 0 1-2 2V6h2z"/>'],
+  ['ostrzezenia','Ostrzeżenia','<path d="M1 21h22L12 2zm12-3h-2v-2h2zm0-4h-2v-4h2z"/>'],
+  ['eventy','Igrzyska i Raidy','<path d="M12 2 9.2 8.6 2 9.2l5.5 4.7L5.8 21 12 17.3 18.2 21l-1.7-7.1L22 9.2l-7.2-.6z"/>'],
+  ['sep'],
+  ['ogloszenia','Ogłoszenia na czat','<path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zM7 9h10v2H7zm6 5H7v-2h6zm4-6H7V6h10z"/>'],
+  ['ustawienia','Zasady i ustawienia','<path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3h-4l-.3 2.9a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1L11 21h4l.3-2.9a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5A3.5 3.5 0 1 1 16.5 12 3.5 3.5 0 0 1 13 15.5z"/>']
+];
+
+/* =========================================================
+   Stan
+   ========================================================= */
+const S={clans:{main:null,academy:null},history:[],cur:'main',view:'pulpit',mode:'loading',demo:false,readOnly:false,db:null,ready:false,sync:null,syncErr:null};
+const UI={mSearch:'',mFilter:'active',mSort:'role',mDir:1,quick:false,hRange:10,hSort:'stars',tpl:'warstart',tplOpt:1,tplText:null,newTodo:''};
+const dirty={},saving={},again={},timers={};
+const LS_KEY='coc-panel-v1', LS_HIST='coc-panel-hist-v1', LS_UI='coc-panel-ui';
+
+function uid(){return Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3)}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function clone(o){return JSON.parse(JSON.stringify(o))}
+function todayISO(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function monthKey(d=new Date()){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
+function fmtDate(s){if(!s)return '—';const d=new Date(s);if(isNaN(d))return s;return d.toLocaleDateString('pl-PL',{day:'numeric',month:'short'})}
+function fmtDT(d){return new Date(d).toLocaleString('pl-PL',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}
+function daysAgo(s){if(!s)return null;const d=new Date(s);if(isNaN(d))return null;return Math.floor((Date.now()-d.getTime())/864e5)}
+function rel(ms){ms=Math.max(0,ms);const m=Math.floor(ms/6e4),d=Math.floor(m/1440),h=Math.floor((m%1440)/60),mm=m%60;if(d>0)return d+' d '+h+' h';if(h>0)return h+' h '+mm+' min';return mm+' min'}
+function clampNum(v,min,max){v=Number(v);if(!isFinite(v))return min;return Math.max(min,Math.min(max,Math.round(v)))}
+function thBadge(th){return `<span class="th t${th}">TH${th}</span>`}
+function starsHTML(n,max=3){n=n??0;let s='';for(let i=0;i<max;i++)s+=i<n?'<b>★</b>':'<i>★</i>';return `<span class="stars" aria-label="${n} gwiazdek">${s}</span>`}
+function other(id){return id==='main'?'academy':'main'}
+
+function defaultClan(kind){
+  return {v:1,settings:{name:kind==='main'?'Mój klan':'Moja Akademia',tag:'',strikeLimit:3,strikeDays:30,minDon:300,cgTarget:4000,raidAttacks:6,maxTH:18,minTH:kind==='main'?14:8,inactiveDays:7},
+    members:[],war:null,cwl:newCwl(),cwlArchive:[],strikes:[],games:{season:monthKey(),pts:{}},raid:{week:todayISO(),att:{},gold:{}},
+    rules:kind==='main'?defaultRules():defaultRulesAcademy(),todos:[]};
+}
+function newCwl(){return {season:monthKey(),size:15,league:'',bonuses:2,pool:[],rounds:Array.from({length:7},()=>({enemy:'',result:'',cells:{}}))}}
+function defaultRules(){return `1. Wojny: 2 ataki obowiązkowe. Pierwszy na swoje lustro w ciągu 12 h od startu bitwy.
+2. Drugi atak: czyszczenie według planu na czacie lub od współprzywódcy.
+3. Nieużyty atak = ostrzeżenie. 3 aktywne ostrzeżenia = rozmowa / wyrzucenie.
+4. Bazy wojenne ustawione na wojnę (nie farmerskie). Zamek klanowy zawsze pełny.
+5. CWL: skład ustala przywódca, 1 atak dziennie, nie wolno go zmarnować.
+6. Igrzyska Klanowe: minimum 4000 pkt. Raid Weekend: wszystkie ataki.
+7. Donacje: dawaj to, o co ktoś prosi. Szacunek na czacie.`}
+function defaultRulesAcademy(){return `1. Akademia uczy ataków. Pytaj o plan przed atakiem.
+2. Wojny: oba ataki obowiązkowe, pierwszy na lustro.
+3. Po każdej wojnie krótka analiza – co poszło nie tak.
+4. Awans do klanu głównego: 3 wojny bez nieużytych ataków i średnio 2,3★+.
+5. Igrzyska min. 4000 pkt, Raid Weekend wszystkie ataki.`}
+function normalize(c,kind){
+  const d=defaultClan(kind);
+  if(!c||typeof c!=='object')return d;
+  c=clone(c);
+  c.settings=Object.assign(d.settings,c.settings||{});
+  for(const k of ['members','strikes','todos','cwlArchive'])if(!Array.isArray(c[k]))c[k]=[];
+  if(!c.cwl||!Array.isArray(c.cwl.rounds))c.cwl=newCwl();
+  c.cwl.pool=c.cwl.pool||[];
+  while(c.cwl.rounds.length<7)c.cwl.rounds.push({enemy:'',result:'',cells:{}});
+  c.cwl.rounds.forEach(r=>{r.cells=r.cells||{}});
+  c.games=c.games||{season:monthKey(),pts:{}};c.games.pts=c.games.pts||{};
+  c.raid=c.raid||{week:todayISO(),att:{},gold:{}};c.raid.att=c.raid.att||{};c.raid.gold=c.raid.gold||{};
+  if(typeof c.rules!=='string')c.rules=d.rules;
+  c.members.forEach(m=>{m.heroes=m.heroes||{};m.role=m.role||'member';m.warPref=m.warPref||'in';m.status=m.status||'active';m.th=m.th||1});
+  if(c.war){c.war.lineup=c.war.lineup||[];c.war.enemyTH=c.war.enemyTH||[];c.war.att=c.war.att||{};}
+  return c;
+}
+const C=()=>S.clans[S.cur];
+const members=(c,all)=>c.members.filter(m=>all||m.status!=='left');
+const mById=(c,id)=>c.members.find(m=>m.id===id);
+const mName=(c,id)=>{const m=mById(c,id);return m?m.name:'(usunięty)'};
+
+/* =========================================================
+   Dane przykładowe (tylko w pamięci, nie są zapisywane)
+   ========================================================= */
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function demoData(){
+  const R=rng(7);const pick=a=>a[Math.floor(R()*a.length)];
+  const heroFor=(th)=>{const h={};const lv={bk:(th-6)*7,aq:(th-7)*7,mp:(th-8)*7,gw:(th-10)*9,rc:(th-12)*9,dd:(th-14)*7};
+    HEROES.forEach(([k,,,u])=>{h[k]=th>=u?Math.max(1,Math.round(lv[k]*(0.8+R()*0.25))):0});return h};
+  const mk=(names,ths,kind)=>names.map((n,i)=>{const th=ths[i];const id='d'+kind[0]+i;
+    const role=kind==='main'?(i===0?'leader':i<4?'coleader':i<11?'elder':'member'):(i===0?'coleader':i<3?'elder':'member');
+    return {id,name:n,tag:'#'+Array.from({length:8},()=>pick('0289PYLQGRJCUV'.split(''))).join(''),th,role,heroes:heroFor(th),warPref:R()<0.88?'in':'out',
+      don:Math.round(R()*2400*(th/16)),rec:Math.round(R()*1500),joined:new Date(Date.now()-(30+R()*500)*864e5).toISOString().slice(0,10),
+      lastSeen:new Date(Date.now()-(R()<0.85?R()*2:4+R()*12)*864e5).toISOString().slice(0,10),notes:'',status:'active'}});
+  const mainNames=['Szczerbiec','Wilk Mazur','Zbyszko','KrólJulian','Husarz','Ola_xD','Dziadek Mróz','Bartek','Pyra','Kasia','Nocny Łowca','Rysiu','Fenix','Darek','Gosia','Koziołek','Łukasz','Jaszczur','Pan Kleks','Stefan','Burza','Mietek','Tygrys','Lolek','Bolek','Mati2009','Gruby','SzatanPL','Kowal','Zorza'];
+  const mainTH=[18,18,18,17,17,17,17,16,16,16,16,16,16,15,15,15,15,15,14,14,14,14,14,13,13,13,13,12,12,12];
+  const acNames=['Młody','Kacperek','Pixel','Zuzia','Szymek','Tomek_12','Mały Rycerz','Franek','Dominik','Kuba','Iga','Wiktor','Nikola','Hubert','Oskar'];
+  const acTH=[13,13,12,12,12,11,11,11,10,10,10,9,9,9,8];
+  const main=defaultClan('main'),ac=defaultClan('academy');
+  Object.assign(main.settings,{name:'Husaria PL',tag:'#2QJ8LVY0R'});
+  Object.assign(ac.settings,{name:'Husaria Akademia',tag:'#9PCG2U8LL'});
+  main.members=mk(mainNames,mainTH,'main');ac.members=mk(acNames,acTH,'academy');
+  main.members[24].notes='Często zapomina o 2. ataku';main.members[27].lastSeen=new Date(Date.now()-11*864e5).toISOString().slice(0,10);
+  const hist=[];
+  const mkWar=(c,kind,size,daysBack,enemy,withAtt)=>{
+    const lineup=members(c).filter(m=>m.warPref==='in').sort((a,b)=>b.th-a.th).slice(0,size).map(m=>m.id);
+    while(lineup.length<size)lineup.push(null);
+    const enemyTH=lineup.map(id=>{const m=mById(c,id);return m?Math.max(1,m.th-(R()<0.2?1:0)+(R()<0.15?1:0)):10});
+    const att={};
+    lineup.forEach((id,i)=>{if(!id)return;const m=mById(c,id);
+      const a=[0,1].map(k=>{const t=k===0?i+1:Math.min(size,Math.max(1,i+1+Math.round((R()-0.4)*4)));
+        if(!withAtt)return {t,s:null,d:null};
+        if(withAtt==='partial'&&(k===1||R()<0.35))return {t:k===0?t:null,s:null,d:null};
+        if(R()<0.05)return {t,s:null,d:null};
+        const diff=m.th-enemyTH[t-1];const p=R()+diff*0.25;const s=p>0.55?3:p>0.18?2:p>0.04?1:0;
+        const d=s===3?100:s===2?Math.round(55+R()*44):s===1?Math.round(35+R()*40):Math.round(10+R()*35);return {t,s,d}});
+      att[id]=a});
+    return {id:uid(),enemy,enemyTag:'#'+Array.from({length:8},()=>pick('0289PYLQGRJCUV'.split(''))).join(''),size,type:'normal',
+      start:new Date(Date.now()-daysBack*864e5).toISOString(),end:new Date(Date.now()-daysBack*864e5+(withAtt==='partial'?14:24)*36e5).toISOString(),
+      lineup,enemyTH,enemyNote:[],att,enemyStars:withAtt==='partial'?Math.round(size*1.2):0,enemyPct:withAtt==='partial'?48:0};
+  };
+  const enemiesM=['Polska Armia','Warriors of Oder','Night Raiders','Elite Clash','Sparta','Dzicy'];
+  const enemiesA=['Mini Smoki','Kids of War','Mazowsze Jr','Rookies'];
+  enemiesM.forEach((e,i)=>{const w=mkWar(main,'main',[15,20,15,15,20,15][i],7+i*4,e,true);w.enemyStars=Math.round(w.size*(1.9+R()*0.9));w.enemyPct=Math.round(70+R()*25);hist.push(archiveWar(main,'main',w,true))});
+  enemiesA.forEach((e,i)=>{const w=mkWar(ac,'academy',10,5+i*4,e,true);w.enemyStars=Math.round(w.size*(1.5+R()*1.1));w.enemyPct=Math.round(60+R()*30);hist.push(archiveWar(ac,'academy',w,true))});
+  main.war=mkWar(main,'main',15,0.6,'Orły Bałtyku','partial');
+  main.war.start=new Date(Date.now()-10*36e5).toISOString();main.war.end=new Date(Date.now()+14*36e5).toISOString();
+  ac.war=mkWar(ac,'academy',10,0.3,'Zielone Gobliny','partial');
+  ac.war.start=new Date(Date.now()-6*36e5).toISOString();ac.war.end=new Date(Date.now()+18*36e5).toISOString();
+  // CWL bieżący sezon (klan główny, rundy 1-3)
+  const pool=members(main).sort((a,b)=>b.th-a.th).slice(0,18).map(m=>m.id);
+  main.cwl={season:monthKey(),size:15,league:'Kryształowa I',bonuses:3,pool,rounds:Array.from({length:7},(_,r)=>{
+    const cells={};const lineup=pool.slice(0).sort(()=>R()-0.5).slice(0,15);
+    if(r<3){lineup.forEach(id=>{const v=R();cells[id]=v<0.05?'x':v<0.55?'3':v<0.88?'2':'1'})}
+    else if(r===3){lineup.forEach(id=>cells[id]='w')}
+    return {enemy:r<4?['Wilki z Gór','Legion PL','Kraków Clan','Dragons','',''][r]:'',result:r<3?['W','W','L'][r]:'',cells}})};
+  ac.cwl.season=monthKey();
+  // ostrzeżenia
+  const s=(c,i,reason,d)=>c.strikes.push({id:uid(),member:c.members[i].id,reason,pts:1,date:new Date(Date.now()-d*864e5).toISOString().slice(0,10),note:''});
+  s(main,24,'Nieużyty atak w wojnie',3);s(main,24,'Nieużyty atak w CWL',1);s(main,27,'Brak aktywności',2);s(main,19,'Brak donacji',12);s(main,24,'Brak ataków w Raid Weekend',9);
+  s(ac,11,'Nieużyty atak w wojnie',6);s(ac,13,'Atak w zły cel / poza planem',4);
+  // Igrzyska (poprzedni sezon) i Raid
+  const lastMonth=new Date();lastMonth.setMonth(lastMonth.getMonth()-1);
+  main.games={season:monthKey(lastMonth),pts:{}};ac.games={season:monthKey(lastMonth),pts:{}};
+  members(main).forEach(m=>{const v=R();main.games.pts[m.id]=v<0.12?Math.round(R()*2500):v<0.75?4000:Math.round(4000+R()*6000)});
+  members(ac).forEach(m=>{const v=R();ac.games.pts[m.id]=v<0.2?Math.round(R()*3000):4000});
+  const lastFri=raidInfo(new Date(Date.now()-3*864e5)).start.toISOString().slice(0,10);
+  main.raid={week:lastFri,att:{},gold:{}};ac.raid={week:lastFri,att:{},gold:{}};
+  members(main).forEach(m=>{const a=R()<0.15?Math.floor(R()*5):6;main.raid.att[m.id]=a;main.raid.gold[m.id]=a*Math.round(3200+R()*1800)});
+  members(ac).forEach(m=>{const a=R()<0.25?Math.floor(R()*5):6;ac.raid.att[m.id]=a;ac.raid.gold[m.id]=a*Math.round(1500+R()*1200)});
+  main.todos=[{id:uid(),text:'Ustalić skład na rundę 4 CWL',done:false},{id:uid(),text:'Pogadać z Mati2009 o 2. atakach',done:false},{id:uid(),text:'Przenieść Młodego z akademii (TH13, same 3★)',done:true}];
+  ac.todos=[{id:uid(),text:'Pokazać nowym atak Smoczym Księciem',done:false}];
+  return {main,academy:ac,history:hist};
+}
+
+/* =========================================================
+   Logika wojny
+   ========================================================= */
+function warCalc(w){
+  const best={};let used=0,total=0;
+  w.lineup.forEach(id=>{if(!id)return;total+=(w.apm||2);(w.att[id]||[]).forEach(a=>{if(a&&a.s!=null){used++;if(a.t){const b=best[a.t];if(!b||a.s>b.s||(a.s===b.s&&(a.d||0)>(b.d||0)))best[a.t]={s:a.s,d:a.d||0,by:id}}}})});
+  let stars=0,pct=0;Object.values(best).forEach(b=>{stars+=b.s;pct+=b.d});
+  return {best,stars,pct:w.size?pct/w.size:0,used,total};
+}
+function warResult(ours,oursPct,theirs,theirsPct){if(ours>theirs)return 'W';if(ours<theirs)return 'L';if(oursPct>theirsPct)return 'W';if(oursPct<theirsPct)return 'L';return 'D'}
+function archiveWar(c,clanId,w,demo){
+  const k=warCalc(w);
+  const rows=w.lineup.map((id,i)=>{if(!id)return null;const m=mById(c,id);return {m:id,name:m?m.name:'?',th:m?m.th:0,pos:i+1,a:(w.att[id]||[{},{}]).map(a=>({t:a&&a.t||null,s:a&&a.s!=null?a.s:null,d:a&&a.d!=null?a.d:null}))}}).filter(Boolean);
+  const es=Number(w.enemyStars)||0,ep=Number(w.enemyPct)||0;
+  return {id:w.id||uid(),clan:clanId,enemy:w.enemy||'Przeciwnik',enemyTag:w.enemyTag||'',size:w.size,date:(w.end||new Date().toISOString()).slice(0,10),
+    ourStars:k.stars,ourPct:Math.round(k.pct*10)/10,enemyStars:es,enemyPct:ep,result:warResult(k.stars,k.pct,es,ep),rows,demo:!!demo};
+}
+function histFor(id){return S.history.filter(h=>h.clan===id).sort((a,b)=>b.date.localeCompare(a.date))}
+function memberStats(c,hist){
+  const map={};
+  hist.forEach(w=>w.rows.forEach(r=>{
+    const st=map[r.m]||(map[r.m]={id:r.m,name:r.name,th:r.th,wars:0,used:0,avail:0,missed:0,stars:0,three:0,pct:0});
+    st.wars++;st.name=r.name;st.th=Math.max(st.th,r.th);
+    r.a.forEach(a=>{st.avail++;if(a.s!=null){st.used++;st.stars+=a.s;if(a.s===3)st.three++;st.pct+=a.d||0}else st.missed++});
+  }));
+  Object.values(map).forEach(s=>{const m=mById(c,s.id);if(m){s.name=m.name;s.th=m.th;s.inClan=m.status!=='left'}s.avg=s.used?s.stars/s.used:0;s.rate3=s.used?s.three/s.used:0;s.avgPct=s.used?s.pct/s.used:0});
+  return map;
+}
+function activeStrikes(c,mid){const lim=Date.now()-c.settings.strikeDays*864e5;return c.strikes.filter(s=>(!mid||s.member===mid)&&new Date(s.date).getTime()>=lim)}
+function strikePts(c,mid){return activeStrikes(c,mid).reduce((a,s)=>a+(Number(s.pts)||1),0)}
+
+/* =========================================================
+   Kalendarz wydarzeń (stały harmonogram Supercell, czas UTC)
+   ========================================================= */
+function raidInfo(now=new Date()){
+  let start=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate(),7));
+  start.setUTCDate(start.getUTCDate()-((now.getUTCDay()-5+7)%7));
+  if(start>now)start.setUTCDate(start.getUTCDate()-7);
+  const end=new Date(start.getTime()+3*864e5);
+  if(now<end)return {active:true,start,end};
+  const ns=new Date(start.getTime()+7*864e5);return {active:false,start:ns,end:new Date(ns.getTime()+3*864e5)};
+}
+function monthWindow(now,d1,d2,h){
+  const y=now.getUTCFullYear(),m=now.getUTCMonth();
+  let s=new Date(Date.UTC(y,m,d1,h)),e=new Date(Date.UTC(y,m,d2,h));
+  if(now>=e){s=new Date(Date.UTC(y,m+1,d1,h));e=new Date(Date.UTC(y,m+1,d2,h))}
+  return {active:now>=s&&now<e,start:s,end:e};
+}
+const cgInfo=(n=new Date())=>monthWindow(n,22,28,8);
+const cwlInfo=(n=new Date())=>monthWindow(n,1,11,8);
+
+/* =========================================================
+   Zapis: baza artefaktu (współdzielona) albo pamięć przeglądarki
+   ========================================================= */
+function setSync(kind,text){const el=document.getElementById('sync');el.className='sync '+kind;el.querySelector('span').textContent=text}
+function syncIdle(){
+  if(PUBLIC)return setSync(S.sync?'ok':'busy',S.sync?'Dane z gry · odświeżane co ~30 min':'Wczytywanie danych z gry…');
+  if(S.demo)return setSync('demo','Przykład · nic nie jest zapisywane');
+  if(S.readOnly)return setSync('neu','Tylko podgląd');
+  if(S.mode==='db')return setSync('ok','Zapisano · wspólne dla współprzywódców');
+  if(S.mode==='local')return setSync('ok','Zapisano w tej przeglądarce');
+}
+function commit(clanId=S.cur){
+  render();
+  if(S.demo||S.readOnly)return;
+  dirty[clanId]=true;setSync('busy','Zapisywanie…');
+  clearTimeout(timers[clanId]);timers[clanId]=setTimeout(()=>flush(clanId),600);
+}
+async function flush(id){
+  if(saving[id]){again[id]=true;return}
+  saving[id]=true;dirty[id]=false;
+  try{
+    if(S.mode==='db')await S.db.doc('clans/'+id).set(clone(S.clans[id]));
+    else saveLocal();
+    if(!dirty[id])syncIdle();
+  }catch(e){handleWriteErr(e)}
+  saving[id]=false;
+  if(again[id]||dirty[id]){again[id]=false;flush(id)}
+}
+function handleWriteErr(e){
+  const code=e&&e.code;
+  if(code==='invalid_argument'&&!S.readOnly){S.readOnly=true;toast('Nie masz uprawnień do zapisu – panel w trybie podglądu');render();syncIdle();return}
+  if(code==='quota_exceeded'){setSync('err','Baza pełna – usuń stare wojny w Historii');return}
+  setSync('err','Błąd zapisu – spróbuj ponownie');console.warn(e);
+}
+function saveLocal(){try{localStorage.setItem(LS_KEY,JSON.stringify(S.clans));localStorage.setItem(LS_HIST,JSON.stringify(S.history))}catch(e){}}
+async function putHistory(h){
+  S.history=S.history.filter(x=>x.id!==h.id).concat([h]);
+  if(S.demo||S.readOnly)return;
+  if(S.mode==='db'){try{await S.db.collection('history').doc(h.id).set(clone(h))}catch(e){handleWriteErr(e)}}else saveLocal();
+}
+async function delHistory(id){
+  S.history=S.history.filter(x=>x.id!==id);
+  if(S.demo||S.readOnly)return;
+  if(S.mode==='db'){try{await S.db.collection('history').doc(id).delete()}catch(e){handleWriteErr(e)}}else saveLocal();
+}
+
+async function boot(){
+  try{const u=JSON.parse(localStorage.getItem(LS_UI)||'{}');if(u.cur)S.cur=u.cur}catch(e){}
+  readHash();
+  if(PUBLIC){document.body.classList.add('public');S.mode='public';S.readOnly=true;S.clans={main:defaultClan('main'),academy:defaultClan('academy')};S.ready=true;syncIdle();render();fetchSync();setInterval(fetchSync,5*60000);return}
+  render();fetchSync();setInterval(fetchSync,10*60000);
+  let db=null;
+  try{db=window.claude&&window.claude.use?await window.claude.use('db'):null}catch(e){db=null}
+  if(!db){startLocal();return}
+  S.db=db;S.mode='db';
+  try{const u=await window.claude.use('user');if(u&&u.can){const w=await u.can('data.write');if(w===false)S.readOnly=true}}catch(e){}
+  const got={main:false,academy:false},real={main:null,academy:null};let histGot=false;let settled=false;
+  const timeout=setTimeout(()=>{if(!settled){settled=true;S.mode='local';S.db=null;startLocal('Brak połączenia z bazą – pracujesz na kopii w tej przeglądarce')}},10000);
+  const maybeReady=()=>{
+    if(settled||!got.main||!got.academy||!histGot)return;
+    settled=true;clearTimeout(timeout);S.ready=true;
+    if(!S.clans.main&&!S.clans.academy){loadDemo()}
+    else{S.clans.main=normalize(S.clans.main,'main');S.clans.academy=normalize(S.clans.academy,'academy');S.demo=false}
+    syncIdle();render();trySync();
+  };
+  ['main','academy'].forEach(id=>{
+    db.doc('clans/'+id).onSnapshot(snap=>{
+      if(dirty[id]||saving[id]||snap.metadata.hasPendingWrites)return;
+      if(settled&&S.demo&&!snap.exists)return;
+      if(snap.exists){
+        if(settled&&S.demo){S.demo=false;S.history=[];S.clans[other(id)]=real[other(id)]||defaultClan(other(id))}
+        S.clans[id]=normalize(snap.data(),id);real[id]=S.clans[id];
+      }else if(!settled)S.clans[id]=null;
+      if(!snap.metadata.fromCache)got[id]=true;
+      if(settled){syncIdle();render()}else maybeReady();
+    },err=>{if(!settled){settled=true;clearTimeout(timeout);S.mode='local';S.db=null;startLocal('Baza niedostępna – pracujesz na kopii w tej przeglądarce')}});
+  });
+  db.collection('history').orderBy('date','desc').limit(1000).onSnapshot(snap=>{
+    if(!(settled&&S.demo))S.history=snap.docs.map(d=>Object.assign({id:d.id},d.data()));
+    if(!snap.metadata.fromCache)histGot=true;
+    if(settled)render();else maybeReady();
+  },err=>{histGot=true;maybeReady()});
+}
+function startLocal(note){
+  S.mode='local';
+  let saved=null,hist=[];
+  try{saved=JSON.parse(localStorage.getItem(LS_KEY)||'null');hist=JSON.parse(localStorage.getItem(LS_HIST)||'[]')}catch(e){}
+  if(saved&&(saved.main||saved.academy)){S.clans.main=normalize(saved.main,'main');S.clans.academy=normalize(saved.academy,'academy');S.history=hist||[];S.demo=false}
+  else loadDemo();
+  S.ready=true;syncIdle();render();trySync();if(note)toast(note);
+}
+function loadDemo(){const d=demoData();S.clans.main=d.main;S.clans.academy=d.academy;S.history=d.history;S.demo=true}
+async function startFresh(keepNames){
+  const n={main:defaultClan('main'),academy:defaultClan('academy')};
+  S.clans=n;S.history=[];S.demo=false;
+  syncIdle();render();
+  if(S.readOnly)return;
+  if(S.mode==='db'){try{await S.db.doc('clans/main').set(clone(n.main));await S.db.doc('clans/academy').set(clone(n.academy))}catch(e){handleWriteErr(e)}}
+  else saveLocal();
+  location.hash='ustawienia';
+}
+
+
+/* =========================================================
+   Synchronizacja z grą (plik sync.json z GitHub Actions)
+   ========================================================= */
+function normTag(t){return '#'+String(t||'').toUpperCase().replace(/^#/,'').replace(/O/g,'0')}
+async function fetchSync(){
+  // Publiczna strona działa na dowolnym hostingu: najpierw plik obok strony (GitHub Pages), potem prosto z repozytorium.
+  const urls=PUBLIC?['sync.json','https://raw.githubusercontent.com/xSmokee67/coc-sync/main/sync.json']:['sync.json'];
+  try{let j=null;for(const u of urls){try{const r=await fetch(u+'?'+Date.now(),{cache:'no-store'});if(r.ok){j=await r.json();break}}catch(e){}}
+    if(!j||!j.clans||!j.generatedAt)return;
+    if(S.sync&&S.sync.generatedAt===j.generatedAt)return;
+    S.sync=j;trySync();render()}catch(e){}
+}
+function trySync(){
+  const sy=S.sync;if(!sy||!sy.clans||!S.ready||(S.readOnly&&!PUBLIC))return;
+  const ok=id=>sy.clans[id]&&sy.clans[id].ok;
+  if(!ok('main')&&!ok('academy'))return;
+  if(S.demo){S.demo=false;S.history=[];S.clans={main:defaultClan('main'),academy:defaultClan('academy')}}
+  ['main','academy'].forEach(id=>{
+    const c=S.clans[id];if(!c||!ok(id))return;
+    if((c.syncedAt||'')>=sy.generatedAt)return;
+    try{applySyncClan(id,c,sy.clans[id],sy.generatedAt)}catch(e){console.warn('sync',e);return}
+    if(PUBLIC){syncIdle();render()}else commit(id);
+  });
+}
+function applySyncClan(id,c,sc,gen){
+  const st=c.settings;
+  if(sc.clan){if(sc.clan.name)st.name=sc.clan.name;if(sc.clan.tag)st.tag=sc.clan.tag}
+  const byTag={};c.members.forEach(m=>{if(m.tag)byTag[normTag(m.tag)]=m});
+  const newMember=(p,status)=>{const m={id:uid(),name:p.name||'?',tag:p.tag,th:p.th||1,role:'member',heroes:{},warPref:'in',don:0,rec:0,joined:todayISO(),lastSeen:'',notes:'',status};c.members.push(m);byTag[normTag(p.tag)]=m;return m};
+  const ensure=p=>byTag[normTag(p.tag)]||newMember(p,'left');
+  // członkowie
+  const seen=new Set();
+  (sc.members||[]).forEach(p=>{
+    const t=normTag(p.tag);seen.add(t);const m=byTag[t]||newMember(p,'active');
+    m.name=p.name||m.name;m.tag=p.tag;m.role=p.role||m.role;m.status='active';
+    if(p.th)m.th=p.th;if(p.heroes)m.heroes=Object.assign({},m.heroes,p.heroes);if(p.warPref)m.warPref=p.warPref;
+    m.don=p.don||0;m.rec=p.rec||0;if(p.lastActive)m.lastSeen=p.lastActive.slice(0,10);
+  });
+  if((sc.members||[]).length)c.members.forEach(m=>{if(m.tag&&m.status!=='left'&&!seen.has(normTag(m.tag)))m.status='left'});
+  // wojna
+  const toLocal=(w,prev)=>{
+    const lineup=Array(w.size).fill(null),att={};
+    w.ours.forEach(o=>{const m=ensure(o);lineup[o.pos-1]=m.id;const pa=prev&&prev.att[m.id]||[];const a=[];
+      for(let j=0;j<(w.apm||1);j++){const x=o.attacks[j];
+        a.push(x?{t:x.t,s:x.s,d:x.d}:{t:pa[j]&&pa[j].s==null?pa[j].t:(prev?null:(j===0?o.pos:null)),s:null,d:null})}
+      att[m.id]=a});
+    return {id:'api-'+w.id,api:true,state:w.state,enemy:w.enemy,enemyTag:w.enemyTag,size:w.size,apm:w.apm,type:'normal',start:w.start,end:w.end,
+      lineup,enemyTH:w.enemyTH||[],enemyNote:prev?prev.enemyNote||[]:[],att,enemyStars:w.enemyStars||0,enemyPct:w.enemyPct||0};
+  };
+  const archive=w=>{if(!S.history.some(h=>h.id===w.id)){const h=archiveWar(c,id,w,false);h.id=w.id;putHistory(h)}};
+  const w=sc.war;
+  if(w&&w.ours&&(w.state==='preparation'||w.state==='inWar')){
+    const wid='api-'+w.id;const prev=c.war&&c.war.id===wid?c.war:null;
+    if(c.war&&c.war.api&&c.war.id!==wid)archive(c.war);
+    c.war=toLocal(w,prev);
+  }else if(w&&w.ours&&w.state==='warEnded'){
+    const wid='api-'+w.id;const prev=c.war&&c.war.id===wid?c.war:null;
+    archive(toLocal(w,prev));
+    if(c.war&&c.war.api)c.war=null;
+  }else if(w&&w.state==='notInWar'){
+    if(c.war&&c.war.api){archive(c.war);c.war=null}
+  }
+  // CWL
+  if(sc.cwl&&Array.isArray(sc.cwl.rounds)){
+    const cw=c.cwl;const ss=String(sc.cwl.season||'').slice(0,7);
+    if(cw.season!==ss){
+      if(cw.rounds.some(r=>Object.keys(r.cells).length)){const rank=cwlRank(c).filter(x=>x.miss===0).slice(0,Number(cw.bonuses)||0);
+        c.cwlArchive.push({season:cw.season,league:cw.league,w:cw.rounds.filter(r=>r.result==='W').length,l:cw.rounds.filter(r=>r.result==='L').length,bonus:rank.map(x=>mName(c,x.id)),totals:cwlTotals(c).map(x=>({id:x.id,name:mName(c,x.id),s:x.stars,a:x.att,m:x.miss}))})}
+      const n=newCwl();n.size=cw.size;n.bonuses=cw.bonuses;n.league=cw.league;n.season=ss;c.cwl=n;
+    }
+    if(sc.cwl.size)c.cwl.size=sc.cwl.size;
+    if(sc.clan&&sc.clan.warLeague&&!c.cwl.league)c.cwl.league=sc.clan.warLeague;
+    sc.cwl.rounds.forEach((r,i)=>{if(!r||i>6)return;const R=c.cwl.rounds[i];R.enemy=r.enemy||R.enemy;R.result=r.result||'';R.cells={};
+      r.lineup.forEach(x=>{const m=ensure(x);R.cells[m.id]=x.s!=null?String(x.s):(r.state==='warEnded'?'x':'w');if(!c.cwl.pool.includes(m.id))c.cwl.pool.push(m.id)})});
+  }
+  // Raid Weekend
+  if(sc.raid){c.raid={week:(sc.raid.start||'').slice(0,10)||todayISO(),att:{},gold:{}};if(sc.raid.limit)st.raidAttacks=sc.raid.limit;
+    sc.raid.members.forEach(x=>{const m=byTag[normTag(x.tag)];if(m){c.raid.att[m.id]=x.attacks;c.raid.gold[m.id]=x.gold}})}
+  // Igrzyska
+  if(sc.cg){if(c.games.season!==sc.cg.season)c.games={season:sc.cg.season,pts:{}};
+    Object.entries(sc.cg.pts||{}).forEach(([t,v])=>{const m=byTag[normTag(t)];if(m)c.games.pts[m.id]=v})}
+  // archiwum wojen z GitHuba (uzupełnia historię, gdy panel nie złapał końca wojny)
+  (sc.history||[]).forEach(h=>{if(!h||!h.id||S.history.some(x=>x.id===h.id))return;
+    const hh=Object.assign({},h,{clan:id,rows:(h.rows||[]).map(r=>({m:ensure(r).id,name:r.name,th:r.th,pos:r.pos,a:r.a||[]}))});
+    if(PUBLIC)S.history.push(hh);else putHistory(hh)});
+  c.syncedAt=gen;
+}
+function syncNote(id){
+  const sy=S.sync;if(!sy)return '';const sc=sy.clans&&sy.clans[id];if(!sc)return '';
+  if(!sc.ok)return `<span class="pill bad">Synchronizacja: ${esc(sc.error||'błąd')}</span>`;
+  const age=Date.now()-new Date(sy.generatedAt).getTime();
+  const warn=[sc.warError,sc.cwlError,sc.raidError].filter(Boolean);
+  return `<span class="pill ${age>3*36e5?'warn':'ok'}">● Dane z gry: ${fmtDT(sy.generatedAt)}</span>${warn.map(x=>` <span class="pill warn">${esc(x)}</span>`).join('')}`;
+}
+
+/* =========================================================
+   Render
+   ========================================================= */
+const PUBLIC_VIEWS=['pulpit','czlonkowie','wojna','historia','cwl','eventy'];
+function readHash(){const h=(location.hash||'').slice(1);if(NAV.some(n=>n[0]===h)&&(!PUBLIC||PUBLIC_VIEWS.includes(h)))S.view=h}
+window.addEventListener('hashchange',()=>{const v=S.view;readHash();if(v!==S.view&&S.view==='ogloszenia')UI.tplText=null;render();window.scrollTo(0,0)});
+
+function render(){
+  const c=C();
+  document.body.classList.toggle('academy',S.cur==='academy');
+  ['main','academy'].forEach(id=>{document.getElementById('sw-'+id).setAttribute('aria-pressed',String(S.cur===id));const cl=S.clans[id];document.getElementById('sw-'+id+'-l').textContent=cl?cl.settings.name:(id==='main'?'Główny':'Akademia')});
+  renderNav(c);
+  const main=document.getElementById('main');
+  if(!c){main.innerHTML='<div class="loading">Wczytywanie danych klanu…</div>';return}
+  document.getElementById('clanTitle').textContent=c.settings.name;
+  if(PUBLIC)document.title=c.settings.name+' – panel klanu';
+  document.getElementById('clanSub').textContent=(c.settings.tag?c.settings.tag+' · ':'')+(S.cur==='main'?'klan główny':'akademia');
+  // zachowaj fokus
+  const ae=document.activeElement;const fid=ae&&ae.id&&main.contains(ae)?ae.id:null;let sel=null;
+  try{if(fid&&ae.selectionStart!=null)sel=[ae.selectionStart,ae.selectionEnd]}catch(e){}
+  const views={pulpit:vPulpit,czlonkowie:vMembers,wojna:vWar,historia:vHistory,cwl:vCwl,ostrzezenia:vStrikes,eventy:vEvents,ogloszenia:vAnnounce,ustawienia:vSettings};
+  main.innerHTML=banner()+(views[S.view]||vPulpit)(c);
+  if(fid){const el=document.getElementById(fid);if(el){el.focus({preventScroll:true});if(sel)try{el.setSelectionRange(sel[0],sel[1])}catch(e){}}}
+  if(S.readOnly)main.querySelectorAll('input,select,textarea,button[data-act]:not([data-ro])').forEach(el=>{if(!el.closest('[data-ro-ok]'))el.disabled=true});
+  tick();
+}
+function banner(){
+  let h='';
+  if(S.demo)h+=`<div class="banner"><div><strong>Przeglądasz przykładowe dane.</strong> Klikaj śmiało – zmiany w przykładzie nie są zapisywane.</div><div class="actions"><button class="btn pri sm" data-act="fresh" data-ro>Zacznij od własnych klanów</button></div></div>`;
+  if(S.readOnly&&!S.demo&&!PUBLIC)h+=`<div class="banner"><div><strong>Tryb podglądu.</strong> Masz dostęp tylko do odczytu – zmiany może wprowadzać właściciel panelu lub osoba z uprawnieniem do edycji.</div></div>`;
+  return h;
+}
+function renderNav(c){
+  const strikesHigh=c?members(c).filter(m=>strikePts(c,m.id)>=c.settings.strikeLimit).length:0;
+  let warLeft=0;if(c&&c.war){const k=warCalc(c.war);warLeft=k.total-k.used}
+  document.getElementById('nav').innerHTML=NAV.filter(n=>!PUBLIC||PUBLIC_VIEWS.includes(n[0])).map(n=>{
+    if(n[0]==='sep')return '<div class="sep"></div>';
+    let b='';if(n[0]==='ostrzezenia'&&strikesHigh)b=`<span class="badge">${strikesHigh}</span>`;
+    if(n[0]==='wojna'&&c&&c.war&&warLeft)b=`<span class="pill acc" style="margin-left:auto;padding:0 7px">${warLeft}</span>`;
+    return `<a href="#${n[0]}" ${S.view===n[0]?'aria-current="page"':''}><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${n[2]}</svg>${n[1]}${b}</a>`}).join('');
+}
+function tick(){
+  document.querySelectorAll('[data-until]').forEach(el=>{const t=new Date(el.dataset.until).getTime()-Date.now();el.textContent=t>0?rel(t):'zakończona'});
+}
+setInterval(tick,30000);
+
+/* ---------- Pulpit ---------- */
+function vPulpit(c){
+  const ms=members(c);const st=c.settings;
+  const avgTH=ms.length?(ms.reduce((a,m)=>a+m.th,0)/ms.length):0;
+  const inWar=ms.filter(m=>m.warPref==='in').length;
+  let warTile=`<div class="tile"><div class="k">Wojna</div><div class="v">brak</div><div class="s">${PUBLIC?(c.cwl.rounds.some(r=>Object.keys(r.cells).length)&&cwlInfo().active?'<a href="#cwl">Trwa Liga Klanów</a>':'brak zwykłej wojny'):'<a href="#wojna">Zaplanuj nową wojnę</a>'}</div></div>`;
+  if(c.war){const k=warCalc(c.war);warTile=`<div class="tile hot"><div class="k">Wojna vs ${esc(c.war.enemy)}</div><div class="v">${k.stars} <small>: ${Number(c.war.enemyStars)||0} ★</small></div><div class="s">${k.total-k.used} ataków do wykonania · <span data-until="${esc(c.war.end)}"></span></div></div>`}
+  const flagged=ms.filter(m=>strikePts(c,m.id)>=st.strikeLimit);
+  const hist=histFor(S.cur);
+  // uwaga
+  const att=[];
+  flagged.forEach(m=>att.push(['bad',`<b>${esc(m.name)}</b> ma ${strikePts(c,m.id)}/${st.strikeLimit} aktywnych ostrzeżeń`,'ostrzezenia']));
+  ms.filter(m=>{const p=strikePts(c,m.id);return p>0&&p===st.strikeLimit-1}).forEach(m=>att.push(['warn',`<b>${esc(m.name)}</b> – jedno ostrzeżenie od limitu`,'ostrzezenia']));
+  if(c.war){const k=warCalc(c.war);const left=c.war.lineup.filter(id=>id&&(c.war.att[id]||[]).some(a=>!a||a.s==null)).map(id=>mName(c,id));
+    if(left.length)att.push(['acc',`Wojna: ${left.length} graczy z nieużytymi atakami (${esc(left.slice(0,5).join(', '))}${left.length>5?'…':''})`,'wojna'])}
+  if(hist[0]){const miss=hist[0].rows.filter(r=>r.a.some(a=>a.s==null));if(miss.length)att.push(['warn',`Ostatnia wojna (${esc(hist[0].enemy)}): nieużyte ataki – ${esc(miss.map(r=>r.name).join(', '))}`,'historia'])}
+  const inact=ms.filter(m=>{const d=daysAgo(m.lastSeen);return d!=null&&d>=st.inactiveDays});
+  if(inact.length)att.push(['warn',`Nieaktywni od ${st.inactiveDays}+ dni: ${esc(inact.map(m=>m.name).join(', '))}`,'czlonkowie']);
+  const lowDon=ms.filter(m=>(m.don||0)<st.minDon&&m.role!=='leader');
+  if(lowDon.length)att.push(['neu',`Donacje poniżej ${st.minDon}: ${lowDon.length} graczy`,'czlonkowie']);
+  const cg=cgInfo();if(cg.active){const low=ms.filter(m=>(c.games.pts[m.id]||0)<st.cgTarget);if(low.length)att.push(['acc',`Igrzyska trwają – ${low.length} graczy poniżej ${st.cgTarget} pkt`,'eventy'])}
+  const rd=raidInfo();if(rd.active){const low=ms.filter(m=>(c.raid.att[m.id]||0)<st.raidAttacks);if(low.length)att.push(['acc',`Raid Weekend trwa – ${low.length} graczy z wolnymi atakami`,'eventy'])}
+  if(S.cur==='academy'){const cand=promoCandidates(c);if(cand.length)att.push(['acc',`Kandydaci do awansu do ${esc(S.clans.main.settings.name)}: ${esc(cand.map(s=>s.name).join(', '))}`,'historia'])}
+  // TH
+  const dist={};ms.forEach(m=>dist[m.th]=(dist[m.th]||0)+1);const maxD=Math.max(1,...Object.values(dist));
+  const ths=Object.keys(dist).map(Number).sort((a,b)=>b-a);
+  const cw=cwlInfo();
+  const cal=[
+    ['Liga Klanów (CWL)',cw,'zapisy 1. dnia miesiąca, 7 dni wojen'],
+    ['Igrzyska Klanowe',cg,`${CG_PLAYER_MAX.toLocaleString('pl-PL')} pkt max / gracz`],
+    ['Raid Weekend',rd,'piątek–poniedziałek, stolica klanu']
+  ].sort((a,b)=>(b[1].active-a[1].active)||(a[1].start-b[1].start));
+  const wl=hist.slice(0,10);const wins=wl.filter(h=>h.result==='W').length;
+  const attV=PUBLIC?att.filter(a=>['wojna','eventy','historia'].includes(a[2])):att;
+  return `
+  <div class="pagehead"><div><h2>Pulpit</h2><p>${PUBLIC?esc(c.settings.name)+' '+esc(c.settings.tag)+' – skład, wojny i wydarzenia klanu.':esc(c.settings.name)+' – wszystko, co wymaga Twojej uwagi dzisiaj.'}</p>${S.sync?`<div class="row" style="margin-top:8px;gap:6px">${syncNote(S.cur)}</div>`:''}</div></div>
+  <div class="tiles">
+    <div class="tile"><div class="k">Członkowie</div><div class="v">${ms.length}<small> / 50</small></div><div class="s">${inWar} chętnych na wojny</div></div>
+    <div class="tile"><div class="k">Średni ratusz</div><div class="v">TH${avgTH.toFixed(1).replace('.',',')}</div><div class="s">min. wymagany TH${st.minTH}</div></div>
+    ${warTile}
+    <div class="tile"><div class="k">Ostatnie ${wl.length} wojen</div><div class="v">${wins}<small> W · ${wl.filter(h=>h.result==='L').length} L</small></div><div class="s">${wl.length?wl.map(h=>h.result==='W'?'🟩':h.result==='L'?'🟥':'⬜').join(''):'brak historii'}</div></div>
+    ${PUBLIC?'':`<div class="tile"><div class="k">Ostrzeżenia</div><div class="v" style="color:${flagged.length?'var(--bad)':'inherit'}">${activeStrikes(c).length}</div><div class="s">Na limicie: ${flagged.length}</div></div>`}
+  </div>
+  <div class="grid g2">
+    <div class="card"><h3>${PUBLIC?'Do zrobienia':'Wymaga uwagi'}<span class="sub">${attV.length} pozycji</span></h3>
+      ${attV.length?`<div class="list">${attV.map(a=>`<div><span class="sev ${a[0]}"></span><span style="flex:1">${a[1]}</span><a class="btn sm ghost" href="#${a[2]}">Otwórz</a></div>`).join('')}</div>`:'<div class="empty">Wszystko pod kontrolą.</div>'}
+    </div>
+    <div class="card"><h3>Kalendarz wydarzeń<span class="sub">godziny lokalne, orientacyjnie</span></h3>
+      ${cal.map(([n,i,d])=>`<div class="calrow"><span>${i.active?'<span class="pill ok">trwa</span>':'<span class="pill neu">za '+rel(i.start-Date.now())+'</span>'}</span><div><div class="ev">${n}</div><div class="small muted">${i.active?'<b style="color:var(--ink)">koniec za '+rel(i.end-Date.now())+'</b> · ':''}${fmtDT(i.start)} → ${fmtDT(i.end)}</div><div class="small muted">${d}</div></div></div>`).join('')}
+    </div>
+    <div class="card"><h3>Ratusze w klanie</h3>
+      ${ths.length?`<div class="thdist">${ths.map(t=>`<div class="r">${thBadge(t)}<div class="bar"><i style="width:${dist[t]/maxD*100}%"></i></div><span class="num muted">${dist[t]}</span></div>`).join('')}</div>`:'<div class="empty">Dodaj członków, żeby zobaczyć rozkład.</div>'}
+    </div>
+    ${PUBLIC?'':`<div class="card"><h3>Notatki sztabu<span class="sub">lista zadań</span></h3>
+      <div>${c.todos.map(t=>`<div class="todo ${t.done?'done':''}"><input type="checkbox" class="check" id="todo-${t.id}" data-ch="todo" data-id="${t.id}" ${t.done?'checked':''}><span>${esc(t.text)}</span><button class="iconbtn" data-act="todoDel" data-id="${t.id}" aria-label="Usuń">✕</button></div>`).join('')||'<div class="muted small">Brak zadań.</div>'}</div>
+      <form class="row" style="margin-top:10px" data-form="todo"><input type="text" id="todo-new" placeholder="Np. ustalić skład na CWL" style="flex:1"><button class="btn sm" type="submit">Dodaj</button></form>
+    </div>`}
+  </div>`;
+}
+
+/* ---------- Członkowie ---------- */
+function vMembers(c){
+  let ms=c.members.slice();
+  if(UI.mFilter==='active')ms=ms.filter(m=>m.status!=='left');
+  else if(UI.mFilter==='left')ms=ms.filter(m=>m.status==='left');
+  else if(UI.mFilter==='out')ms=ms.filter(m=>m.status!=='left'&&m.warPref==='out');
+  else if(UI.mFilter==='flag')ms=ms.filter(m=>strikePts(c,m.id)>0);
+  const q=UI.mSearch.trim().toLowerCase();if(q)ms=ms.filter(m=>(m.name+' '+m.tag+' '+(m.notes||'')).toLowerCase().includes(q));
+  const hs=h=>HEROES.reduce((a,[k])=>a+(Number(h[k])||0),0);
+  const sorters={role:(a,b)=>ROLE_ORDER[a.role]-ROLE_ORDER[b.role]||b.th-a.th||hs(b.heroes)-hs(a.heroes),name:(a,b)=>a.name.localeCompare(b.name,'pl'),th:(a,b)=>b.th-a.th||hs(b.heroes)-hs(a.heroes),heroes:(a,b)=>hs(b.heroes)-hs(a.heroes),don:(a,b)=>(b.don||0)-(a.don||0),strikes:(a,b)=>strikePts(c,b.id)-strikePts(c,a.id),seen:(a,b)=>(a.lastSeen||'').localeCompare(b.lastSeen||'')};
+  ms.sort(sorters[UI.mSort]||sorters.role);if(UI.mDir<0)ms.reverse();
+  const sh=(k,l,cls='')=>`<th class="sortable ${cls}" data-act="msort" data-k="${k}">${l}${UI.mSort===k?(UI.mDir>0?' ▾':' ▴'):''}</th>`;
+  const st=c.settings;const q2=UI.quick;
+  const rows=ms.map(m=>{
+    const sp=strikePts(c,m.id);const d=daysAgo(m.lastSeen);
+    const ratio=m.rec?(m.don||0)/m.rec:null;
+    return `<tr class="${q2?'':'click'}" ${q2?'':`data-act="medit" data-id="${m.id}"`}>
+      <td><span class="name">${esc(m.name)}</span><span class="tag">${esc(m.tag)}</span>${m.notes?`<div class="small muted" style="white-space:normal;max-width:260px">${esc(m.notes)}</div>`:''}</td>
+      <td>${q2?`<select id="q-th-${m.id}" data-ch="mfield" data-id="${m.id}" data-f="th">${thOpts(c,m.th)}</select>`:thBadge(m.th)}</td>
+      <td>${q2?`<select id="q-role-${m.id}" data-ch="mfield" data-id="${m.id}" data-f="role">${Object.entries(ROLES).map(([k,v])=>`<option value="${k}" ${m.role===k?'selected':''}>${v}</option>`).join('')}</select>`:`<span class="${m.role==='member'?'muted':''}">${ROLES[m.role]}</span>`}</td>
+      <td><div class="heroes">${HEROES.map(([k,a,full])=>`<span class="${m.heroes[k]?'':'z'}" title="${full}: ${m.heroes[k]||'–'}">${m.heroes[k]||'–'}</span>`).join('')}</div></td>
+      <td class="c">${q2?`<select id="q-wp-${m.id}" data-ch="mfield" data-id="${m.id}" data-f="warPref"><option value="in" ${m.warPref==='in'?'selected':''}>Tak</option><option value="out" ${m.warPref==='out'?'selected':''}>Nie</option></select>`:(m.warPref==='in'?'<span class="pill ok">tak</span>':'<span class="pill neu">nie</span>')}</td>
+      <td class="n">${q2?`<input type="number" min="0" id="q-don-${m.id}" data-ch="mfield" data-id="${m.id}" data-f="don" value="${m.don||0}">`:`<span class="${(m.don||0)<st.minDon?'muted':''}">${(m.don||0).toLocaleString('pl-PL')}</span>`}</td>
+      <td class="n">${q2?`<input type="number" min="0" id="q-rec-${m.id}" data-ch="mfield" data-id="${m.id}" data-f="rec" value="${m.rec||0}">`:`${(m.rec||0).toLocaleString('pl-PL')}${ratio!=null?`<span class="tag">${ratio.toFixed(1).replace('.',',')}</span>`:''}`}</td>
+      <td class="c">${sp?`<span class="pill ${sp>=st.strikeLimit?'bad':'warn'}">${sp}/${st.strikeLimit}</span>`:'<span class="muted">–</span>'}</td>
+      <td>${q2?`<input type="date" id="q-seen-${m.id}" data-ch="mfield" data-id="${m.id}" data-f="lastSeen" value="${esc(m.lastSeen||'')}">`:(d==null?'<span class="muted">–</span>':`<span class="${d>=st.inactiveDays?'pill warn':''}">${d===0?'dziś':d===1?'wczoraj':d+' dni temu'}</span>`)}</td>
+    </tr>`}).join('');
+  const all=members(c);
+  return `
+  <div class="pagehead"><div><h2>Członkowie</h2><p>${all.length}/50 w klanie${PUBLIC?' · dane z gry':' · kliknij gracza, żeby edytować'+(q2?'':' lub przenieść do '+esc(S.clans[other(S.cur)].settings.name))}.</p></div>
+    <div class="actions"><button class="btn ${q2?'pri':''}" data-act="quick">${q2?'Zakończ szybką edycję':'Szybka edycja'}</button><button class="btn" data-act="bulk">Dodaj wielu</button><button class="btn pri" data-act="madd">+ Dodaj gracza</button></div></div>
+  <div class="row" style="margin-bottom:12px">
+    <input type="search" id="m-search" placeholder="Szukaj po nicku, tagu, notatce…" value="${esc(UI.mSearch)}" data-in="msearch" style="flex:1 1 240px" data-ro-ok>
+    <select id="m-filter" data-ch="mfilter" data-ro-ok>
+      ${[['active','W klanie'],['out','Rezygnują z wojen'],['flag','Z ostrzeżeniami'],['left','Byli członkowie'],['all','Wszyscy']].map(([k,v])=>`<option value="${k}" ${UI.mFilter===k?'selected':''}>${v}</option>`).join('')}
+    </select>
+  </div>
+  ${ms.length?`<div class="tablewrap"><table>
+    <thead><tr>${sh('name','Gracz')}${sh('th','TH')}${sh('role','Rola')}${sh('heroes','Bohaterowie <span class="muted" style="text-transform:none">BK AQ MP GW RC DD</span>')}<th class="c">Wojny</th>${sh('don','Donacje','n')}<th class="n">Otrzym.</th>${sh('strikes','Ostrz.','c')}${sh('seen','Ostatnio')}</tr></thead>
+    <tbody>${rows}</tbody></table></div>`:`<div class="card empty">${c.members.length?'Brak graczy dla tego filtra.':'Nie masz jeszcze członków. Użyj „Dodaj wielu” i wklej listę nicków – po jednym w linii.'}</div>`}
+  <p class="small muted" style="margin-top:10px;${PUBLIC||c.syncedAt?'display:none':''}">Donacje i ostatnią aktywność przepisz z gry (Profil klanu → Członkowie). Szybka edycja pozwala zrobić to dla wszystkich naraz.</p>`;
+}
+function thOpts(c,sel){let s='';for(let t=c.settings.maxTH;t>=1;t--)s+=`<option value="${t}" ${t===sel?'selected':''}>TH${t}</option>`;return s}
+function memberModal(c,m){
+  const isNew=!m;m=m||{id:uid(),name:'',tag:'',th:Math.max(1,c.settings.minTH),role:'member',heroes:{},warPref:'in',don:0,rec:0,joined:todayISO(),lastSeen:todayISO(),notes:'',status:'active'};
+  const oc=S.clans[other(S.cur)];
+  openModal(`<h3>${isNew?'Nowy gracz':esc(m.name)}</h3>
+  <form class="stack" data-form="member" data-id="${m.id}" data-new="${isNew?1:''}">
+    <div class="row"><label class="f">Nick<input type="text" name="name" value="${esc(m.name)}" required></label><label class="f">Tag gracza<input type="text" name="tag" value="${esc(m.tag)}" placeholder="#ABC123"></label></div>
+    <div class="row"><label class="f">Ratusz<select name="th">${thOpts(c,m.th)}</select></label><label class="f">Rola<select name="role">${Object.entries(ROLES).map(([k,v])=>`<option value="${k}" ${m.role===k?'selected':''}>${v}</option>`).join('')}</select></label><label class="f">Wojny<select name="warPref"><option value="in" ${m.warPref==='in'?'selected':''}>Chce grać</option><option value="out" ${m.warPref==='out'?'selected':''}>Rezygnuje</option></select></label></div>
+    <div class="row">${HEROES.map(([k,a,full])=>`<label class="f" title="${full}" style="flex:1 1 70px">${a}<input type="number" min="0" max="150" name="h_${k}" value="${m.heroes[k]||0}"></label>`).join('')}</div>
+    <div class="row"><label class="f">Donacje (sezon)<input type="number" min="0" name="don" value="${m.don||0}"></label><label class="f">Otrzymane<input type="number" min="0" name="rec" value="${m.rec||0}"></label><label class="f">Dołączył<input type="date" name="joined" value="${esc(m.joined||'')}"></label><label class="f">Ostatnio aktywny<input type="date" name="lastSeen" value="${esc(m.lastSeen||'')}"></label></div>
+    ${c.syncedAt&&m.tag?'<p class="small muted" style="margin:0">TH, rola, bohaterowie, donacje, chęć do wojen i aktywność aktualizują się z gry co ok. godzinę – ręczne zmiany tych pól zostaną nadpisane.</p>':''}
+    <label class="f">Notatki<textarea name="notes" rows="2" placeholder="Np. preferuje ataki powietrzne, pyta o plan">${esc(m.notes||'')}</textarea></label>
+    ${isNew?'':`<label class="check"><input type="checkbox" name="left" ${m.status==='left'?'checked':''}> Opuścił klan (zostaje w historii)</label>`}
+    <div class="foot">
+      ${isNew?'':`<div class="left"><button type="button" class="btn sm" data-act="mmove" data-id="${m.id}">Przenieś do: ${esc(oc.settings.name)}</button><button type="button" class="btn sm danger" data-act="mdel" data-id="${m.id}">Usuń</button></div>`}
+      <button type="button" class="btn ghost" data-act="close">Anuluj</button><button class="btn pri" type="submit">Zapisz</button>
+    </div>
+  </form>`);
+}
+
+/* ---------- Wojna ---------- */
+function vWar(c){
+  const w=c.war;
+  if(!w&&PUBLIC)return `<div class="pagehead"><div><h2>Wojna</h2><p>Klan nie prowadzi teraz zwykłej wojny.${cwlInfo().active?' Trwa Liga Klanów – zobacz zakładkę <a href="#cwl">Liga (CWL)</a>.':''}</p></div></div>`;
+  if(!w){
+    const avail=members(c).filter(m=>m.warPref==='in').length;
+    const end=new Date(Date.now()+47*36e5);const endLocal=new Date(end.getTime()-end.getTimezoneOffset()*6e4).toISOString().slice(0,16);
+    return `<div class="pagehead"><div><h2>Wojna</h2><p>Brak aktywnej wojny. Zaplanuj nową – skład ułożę automatycznie, możesz go potem zmienić.</p></div></div>
+    <div class="card" style="max-width:720px"><h3>Nowa wojna</h3>
+      <form class="stack" data-form="newwar">
+        <div class="row"><label class="f">Przeciwnik<input type="text" name="enemy" placeholder="Nazwa klanu" required></label><label class="f">Tag przeciwnika<input type="text" name="enemyTag" placeholder="#…"></label></div>
+        <div class="row"><label class="f">Rozmiar<select name="size">${WAR_SIZES.map(s=>`<option value="${s}" ${s===Math.min(50,Math.max(5,Math.floor(avail/5)*5||15))?'selected':''}>${s} vs ${s}</option>`).join('')}</select></label>
+        <label class="f">Koniec bitwy<input type="datetime-local" name="end" value="${endLocal}"></label></div>
+        <label class="check"><input type="checkbox" name="auto" checked> Ułóż skład automatycznie (chętni, wg TH i bohaterów)</label>
+        <label class="check"><input type="checkbox" name="mirror" checked> Przydziel pierwsze ataki na lustro</label>
+        <div><button class="btn pri" type="submit">Rozpocznij planowanie</button> <span class="small muted">${avail} chętnych graczy</span></div>
+      </form></div>`;
+  }
+  const k=warCalc(w);const es=Number(w.enemyStars)||0,ep=Number(w.enemyPct)||0;
+  const res=warResult(k.stars,k.pct,es,ep);
+  const used=new Set(w.lineup.filter(Boolean));
+  const memOpts=(sel)=>`<option value="">— wolne miejsce —</option>`+members(c).slice().sort((a,b)=>b.th-a.th).map(m=>`<option value="${m.id}" ${m.id===sel?'selected':''}>${esc(m.name)} · TH${m.th}${m.warPref==='out'?' (rezygnuje)':''}${used.has(m.id)&&m.id!==sel?' ✓':''}</option>`).join('');
+  const tgOpts=(sel)=>`<option value="">cel</option>`+Array.from({length:w.size},(_,i)=>`<option value="${i+1}" ${sel===i+1?'selected':''}>#${i+1}</option>`).join('');
+  const stOpts=(sel)=>`<option value="" ${sel==null?'selected':''}>—</option>`+[0,1,2,3].map(s=>`<option value="${s}" ${sel===s?'selected':''}>${s}★</option>`).join('');
+  const ended=new Date(w.end).getTime()<Date.now();const live=!!w.api;const dis=live?'disabled':'';const apm=w.apm||2;
+  const rows=w.lineup.map((id,i)=>{
+    const m=id?mById(c,id):null;const a=id?(w.att[id]||[{},{}]):[];
+    const atk=(j)=>{const x=a[j]||{};const cls=x.s!=null?'done':(ended?'miss':'');
+      return `<div class="atk ${cls}"><select class="tg" id="w-t-${i}-${j}" data-ch="watt" data-id="${id}" data-j="${j}" data-f="t" aria-label="Cel ataku ${j+1}">${tgOpts(x.t)}</select><select class="st" id="w-s-${i}-${j}" data-ch="watt" data-id="${id}" data-j="${j}" data-f="s" aria-label="Gwiazdki" ${dis}>${stOpts(x.s)}</select><input type="number" min="0" max="100" placeholder="%" id="w-d-${i}-${j}" data-ch="watt" data-id="${id}" data-j="${j}" data-f="d" value="${x.d??''}" aria-label="Procent zniszczenia" ${dis}></div>`};
+    return `<tr><td class="n"><b class="num">${i+1}</b></td>
+      <td><select id="w-l-${i}" data-ch="wline" data-i="${i}" style="max-width:185px" ${dis}>${memOpts(id)}</select></td>
+      <td>${m?thBadge(m.th):''}</td>
+      <td>${m?atk(0):''}</td>${apm>1?`<td>${m?atk(1):''}</td>`:''}
+      <td class="c">${m?(a.filter(x=>x&&x.s!=null).length+'/'+apm):''}</td></tr>`}).join('');
+  const bases=Array.from({length:w.size},(_,i)=>{const b=k.best[i+1];const th=w.enemyTH[i]||'';
+    return `<div class="base ${b?'s'+b.s:''}"><div style="display:flex;justify-content:space-between;align-items:center"><span class="p">#${i+1}</span>${b?starsHTML(b.s):'<span class="muted small">—</span>'}</div>
+      <select id="w-eth-${i}" data-ch="eth" data-i="${i}" aria-label="Ratusz bazy ${i+1}" ${w.api?'disabled':''}><option value="">TH?</option>${Array.from({length:c.settings.maxTH},(_,t)=>c.settings.maxTH-t).map(t=>`<option value="${t}" ${Number(th)===t?'selected':''}>TH${t}</option>`).join('')}</select>
+      <span class="small muted">${b?esc(mName(c,b.by))+' '+b.d+'%':'nie zbita'}</span></div>`}).join('');
+  const three=Object.values(k.best).filter(b=>b.s===3).length;
+  return `
+  <div class="pagehead"><div><h2>Wojna vs ${esc(w.enemy)}</h2><p>${w.size} vs ${w.size} ${w.enemyTag?'· '+esc(w.enemyTag):''} · koniec ${fmtDT(w.end)}</p></div>
+    <div class="actions">${live?'':'<button class="btn" data-act="wauto">Ułóż skład</button>'}<button class="btn" data-act="wmirror">Lustro dla 1. ataków</button><a class="btn" href="#ogloszenia" data-act="tplgo" data-tpl="warplan">Plan na czat</a>${live?'':'<button class="btn pri" data-act="wend">Zakończ wojnę</button>'}</div></div>
+  ${live?`<div class="row" style="margin:-8px 0 14px;gap:6px"><span class="pill acc">● Na żywo z gry${w.state==='preparation'?' · dzień przygotowań':''}</span><span class="small muted">${PUBLIC?'Skład, gwiazdki i procenty z gry, odświeżane co ok. 30 minut.':'Skład, gwiazdki i procenty uzupełniają się same (co ok. godzinę). Ty ustawiasz cele nieużytych ataków. Po wojnie trafi ona sama do historii.'}</span></div>`:''}
+  <div class="scoreboard">
+    <div class="side-us"><span class="cn">${esc(c.settings.name)}</span><span class="small muted">${k.used}/${k.total} ataków · ${k.pct.toFixed(1).replace('.',',')}%</span></div>
+    <div class="center"><div class="bigscore"><span class="st">${k.stars}★</span><span class="vs">:</span><span>${es}★</span></div>
+      <div class="small" style="margin-top:6px">${ended?'Bitwa zakończona':'Do końca: <b data-until="'+esc(w.end)+'"></b>'} · <span class="pill ${res==='W'?'ok':res==='L'?'bad':'neu'}">${res==='W'?'prowadzimy':res==='L'?'przegrywamy':'remis'}</span></div></div>
+    <div class="side-them"><span class="cn">${esc(w.enemy)}</span>
+      <span class="row" style="justify-content:flex-end;gap:6px"><label class="small muted" for="w-es">★ wroga</label><input type="number" min="0" max="${w.size*3}" id="w-es" data-ch="wenemy" data-f="enemyStars" value="${es}" style="width:70px" ${dis}><label class="small muted" for="w-ep">%</label><input type="number" min="0" max="100" step="0.1" id="w-ep" data-ch="wenemy" data-f="enemyPct" value="${ep}" style="width:70px" ${dis}></span></div>
+  </div>
+  <div class="warcols">
+    <div class="tablewrap"><table>
+      <thead><tr><th class="n">#</th><th>Gracz</th><th>TH</th><th>Atak 1 · cel / ★ / %</th>${apm>1?'<th>Atak 2 · cel / ★ / %</th>':''}<th class="c">Użyte</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>
+    <div class="card"><h3>Mapa wroga<span class="sub">${three}/${w.size} na 3★</span></h3>
+      <div class="emap">${bases}</div>
+      <p class="small muted" style="margin:10px 0 0">Wybierz ratusz każdej bazy wroga – pomaga dobrać cele. Gwiazdki liczą się jak w grze: najlepszy wynik na każdej bazie.</p></div>
+  </div>`;
+}
+function autoLineup(c,size){
+  const hs=m=>HEROES.reduce((a,[k])=>a+(Number(m.heroes[k])||0),0);
+  const l=members(c).filter(m=>m.warPref==='in').sort((a,b)=>b.th-a.th||hs(b)-hs(a)).slice(0,size).map(m=>m.id);
+  while(l.length<size)l.push(null);return l;
+}
+
+/* ---------- Historia ---------- */
+function promoCandidates(c){
+  const st=memberStats(c,histFor(S.cur).slice(0,6));
+  return Object.values(st).filter(s=>s.inClan&&s.wars>=3&&s.missed===0&&s.avg>=2.3).sort((a,b)=>b.avg-a.avg);
+}
+function vHistory(c){
+  const all=histFor(S.cur);const hist=UI.hRange?all.slice(0,UI.hRange):all;
+  const st=Object.values(memberStats(c,hist));
+  const keys={name:(a,b)=>a.name.localeCompare(b.name,'pl'),stars:(a,b)=>b.stars-a.stars,avg:(a,b)=>b.avg-a.avg,rate3:(a,b)=>b.rate3-a.rate3,missed:(a,b)=>b.missed-a.missed,wars:(a,b)=>b.wars-a.wars,pct:(a,b)=>b.avgPct-a.avgPct};
+  st.sort(keys[UI.hSort]||keys.stars);
+  const sh=(k,l,cls='n')=>`<th class="sortable ${cls}" data-act="hsort" data-k="${k}">${l}${UI.hSort===k?' ▾':''}</th>`;
+  const cand=S.cur==='academy'?promoCandidates(c):[];
+  const W=hist.filter(h=>h.result==='W').length,L=hist.filter(h=>h.result==='L').length;
+  return `
+  <div class="pagehead"><div><h2>Historia i statystyki</h2><p>${all.length} zapisanych wojen · bilans w wybranym okresie: ${W} wygranych, ${L} przegranych.</p></div>
+    <div class="actions"><select id="h-range" data-ch="hrange" data-ro-ok>${[[5,'Ostatnie 5 wojen'],[10,'Ostatnie 10 wojen'],[20,'Ostatnie 20 wojen'],[0,'Wszystkie']].map(([v,l])=>`<option value="${v}" ${UI.hRange===v?'selected':''}>${l}</option>`).join('')}</select></div></div>
+  ${cand.length?`<div class="card" style="margin-bottom:14px"><h3>Kandydaci do awansu do ${esc(S.clans.main.settings.name)}</h3><p class="small muted" style="margin:0 0 8px">Min. 3 wojny w ostatnich 6, zero nieużytych ataków, średnio 2,3★ lub więcej.</p><div class="row">${cand.map(s=>`<span class="pill acc">${esc(s.name)} · TH${s.th} · ${s.avg.toFixed(2).replace('.',',')}★</span>`).join('')}</div></div>`:''}
+  <div class="grid g2" style="align-items:start">
+    <div><h3 style="margin-bottom:10px">Wyniki graczy</h3>
+    ${st.length?`<div class="tablewrap"><table><thead><tr>${sh('name','Gracz','')}<th>TH</th>${sh('wars','Wojny')}${sh('stars','★')}${sh('avg','Śr. ★')}${sh('rate3','3★ %')}${sh('pct','Śr. %')}${sh('missed','Nieuż.')}</tr></thead><tbody>
+      ${st.map(s=>`<tr><td><span class="name">${esc(s.name)}</span>${s.inClan?'':' <span class="pill neu">poza klanem</span>'}</td><td>${thBadge(s.th)}</td><td class="n">${s.wars}</td><td class="n">${s.stars}</td><td class="n"><b>${s.avg.toFixed(2).replace('.',',')}</b></td><td class="n">${Math.round(s.rate3*100)}%</td><td class="n">${Math.round(s.avgPct)}%</td><td class="n">${s.missed?`<span class="pill ${s.missed>1?'bad':'warn'}">${s.missed}</span>`:'<span class="muted">0</span>'}</td></tr>`).join('')}
+    </tbody></table></div>`:'<div class="card empty">Statystyki pojawią się po zakończeniu pierwszej wojny.</div>'}</div>
+    <div><h3 style="margin-bottom:10px">Wojny</h3>
+    ${all.length?`<div class="tablewrap"><table><thead><tr><th>Data</th><th>Przeciwnik</th><th class="c">Wynik</th><th class="n">★</th><th class="n">%</th><th class="c">Nieuż.</th><th></th></tr></thead><tbody>
+      ${all.map(h=>{const miss=h.rows.reduce((a,r)=>a+r.a.filter(x=>x.s==null).length,0);return `<tr><td>${fmtDate(h.date)}</td><td><span class="name">${esc(h.enemy)}</span><span class="tag">${h.size}v${h.size}</span></td><td class="c"><span class="pill ${h.result==='W'?'ok':h.result==='L'?'bad':'neu'}">${h.result==='W'?'Wygrana':h.result==='L'?'Przegrana':'Remis'}</span></td><td class="n">${h.ourStars}:${h.enemyStars}</td><td class="n">${String(h.ourPct).replace('.',',')}</td><td class="c">${miss||'<span class="muted">0</span>'}</td><td><button class="iconbtn" data-act="hdel" data-id="${h.id}" aria-label="Usuń wojnę">✕</button></td></tr>`}).join('')}
+    </tbody></table></div>`:'<div class="card empty">Brak zakończonych wojen.</div>'}</div>
+  </div>`;
+}
+
+/* ---------- CWL ---------- */
+const CWL_VALS=[['','·'],['w','●'],['0','0★'],['1','1★'],['2','2★'],['3','3★'],['x','✗']];
+function cwlTotals(c){
+  const t={};
+  c.cwl.pool.forEach(id=>t[id]={id,stars:0,att:0,miss:0,rounds:0});
+  c.cwl.rounds.forEach(r=>Object.entries(r.cells).forEach(([id,v])=>{if(!v)return;const x=t[id]||(t[id]={id,stars:0,att:0,miss:0,rounds:0});x.rounds++;if(v==='x')x.miss++;else if(v!=='w'){x.att++;x.stars+=Number(v)}}));
+  return Object.values(t);
+}
+function cwlRank(c){return cwlTotals(c).filter(x=>x.rounds>0).sort((a,b)=>(b.stars-b.miss*2)-(a.stars-a.miss*2)||b.att-a.att)}
+function vCwl(c){
+  const cw=c.cwl;const tot={};cwlTotals(c).forEach(x=>tot[x.id]=x);
+  const rank=cwlRank(c);const bonusIds=new Set(rank.slice(0,Number(cw.bonuses)||0).filter(x=>x.miss===0).map(x=>x.id));
+  const pool=cw.pool.map(id=>mById(c,id)).filter(Boolean).sort((a,b)=>b.th-a.th);
+  const roundCount=r=>Object.values(r.cells).filter(Boolean).length;
+  const rw=cw.rounds.filter(r=>r.result==='W').length,rl=cw.rounds.filter(r=>r.result==='L').length;
+  const info=cwlInfo();
+  return `
+  <div class="pagehead"><div><h2>Liga Klanów (CWL)</h2><p>Sezon ${esc(cw.season)} · ${info.active?'trwa, koniec ok. '+fmtDT(info.end):'następny start '+fmtDT(info.start)} · bilans ${rw}–${rl}</p></div>
+    <div class="actions"><button class="btn" data-act="cwlpool">Pula graczy (${cw.pool.length})</button><a class="btn" href="#ogloszenia" data-act="tplgo" data-tpl="cwlround">Skład na czat</a><button class="btn" data-act="cwlclose">Nowy sezon</button></div></div>
+  <div class="card" style="margin-bottom:14px"><div class="row">
+    <label class="f">Sezon<input type="text" id="cwl-season" data-ch="cwlset" data-f="season" value="${esc(cw.season)}"></label>
+    <label class="f">Rozmiar<select id="cwl-size" data-ch="cwlset" data-f="size">${[15,30].map(s=>`<option value="${s}" ${Number(cw.size)===s?'selected':''}>${s} vs ${s}</option>`).join('')}</select></label>
+    <label class="f">Liga<input type="text" id="cwl-league" data-ch="cwlset" data-f="league" value="${esc(cw.league)}" placeholder="np. Kryształowa I"></label>
+    <label class="f">Liczba bonusów<input type="number" min="0" max="20" id="cwl-bon" data-ch="cwlset" data-f="bonuses" value="${cw.bonuses}"></label>
+  </div></div>
+  ${pool.length?`<div class="tablewrap cwl"><table>
+    <thead><tr><th>Gracz</th><th>TH</th>${cw.rounds.map((r,i)=>`<th class="c">R${i+1}<div class="small" style="text-transform:none;font-weight:500">${roundCount(r)}/${cw.size}</div></th>`).join('')}<th class="n">★</th><th class="n">Ataki</th><th class="n">Nieuż.</th><th class="c">Bonus</th></tr></thead>
+    <tbody>
+    <tr><td class="muted small">Przeciwnik / wynik</td><td></td>${cw.rounds.map((r,i)=>`<td class="cell"><input type="text" id="cwl-en-${i}" data-ch="cwlround" data-i="${i}" data-f="enemy" value="${esc(r.enemy)}" placeholder="klan" style="width:74px;padding:3px 5px;font-size:12.5px"><select id="cwl-res-${i}" data-ch="cwlround" data-i="${i}" data-f="result" style="margin-top:3px">${[['','?'],['W','W'],['L','L'],['D','R']].map(([v,l])=>`<option value="${v}" ${r.result===v?'selected':''}>${l}</option>`).join('')}</select></td>`).join('')}<td colspan="4"></td></tr>
+    ${pool.map(m=>{const t=tot[m.id]||{stars:0,att:0,miss:0};return `<tr class="${bonusIds.has(m.id)?'bonus':''}"><td><span class="name">${esc(m.name)}</span></td><td>${thBadge(m.th)}</td>
+      ${cw.rounds.map((r,i)=>{const v=r.cells[m.id]||'';return `<td class="cell"><select id="cwl-${i}-${m.id}" class="v${v}" data-ch="cwlcell" data-i="${i}" data-id="${m.id}" aria-label="Runda ${i+1}">${CWL_VALS.map(([k,l])=>`<option value="${k}" ${v===k?'selected':''}>${l}</option>`).join('')}</select></td>`}).join('')}
+      <td class="n"><b>${t.stars}</b></td><td class="n">${t.att}</td><td class="n">${t.miss?`<span class="pill bad">${t.miss}</span>`:'<span class="muted">0</span>'}</td><td class="c">${bonusIds.has(m.id)?'<span class="pill acc">🎖 bonus</span>':''}</td></tr>`}).join('')}
+    </tbody></table></div>
+    <p class="small muted" style="margin-top:10px">Legenda: <span class="kbd">·</span> poza składem, <span class="kbd">●</span> w składzie (czeka na atak), <span class="kbd">0–3★</span> wynik, <span class="kbd">✗</span> nieużyty atak. Propozycja bonusów: najwięcej gwiazdek, bez nieużytych ataków (nieużyty atak = –2 w rankingu).</p>`
+  :`<div class="card empty">Wybierz pulę graczy na ten sezon – przycisk „Pula graczy”.</div>`}
+  ${c.cwlArchive.length?`<div class="card" style="margin-top:14px"><h3>Poprzednie sezony</h3><div class="list">${c.cwlArchive.slice().reverse().map(a=>`<div><b>${esc(a.season)}</b><span class="muted">${esc(a.league||'')}</span><span>${a.w}–${a.l}</span><span class="small muted" style="margin-left:auto">Bonusy: ${esc((a.bonus||[]).join(', ')||'–')}</span></div>`).join('')}</div></div>`:''}`;
+}
+
+/* ---------- Ostrzeżenia ---------- */
+function vStrikes(c){
+  const st=c.settings;const ms=members(c);
+  const sum=ms.map(m=>({m,p:strikePts(c,m.id)})).filter(x=>x.p>0).sort((a,b)=>b.p-a.p);
+  const lim=Date.now()-st.strikeDays*864e5;
+  const log=c.strikes.slice().sort((a,b)=>b.date.localeCompare(a.date));
+  return `
+  <div class="pagehead"><div><h2>Ostrzeżenia</h2><p>Limit: ${st.strikeLimit} pkt · ostrzeżenie wygasa po ${st.strikeDays} dniach (zmienisz w ustawieniach).</p></div></div>
+  <div class="card" style="margin-bottom:14px"><h3>Dodaj ostrzeżenie</h3>
+    <form class="row" data-form="strike">
+      <label class="f">Gracz<select name="member" required><option value="">— wybierz —</option>${ms.slice().sort((a,b)=>a.name.localeCompare(b.name,'pl')).map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join('')}</select></label>
+      <label class="f">Powód<select name="reason">${STRIKE_REASONS.map(r=>`<option>${r}</option>`).join('')}</select></label>
+      <label class="f" style="flex:0 1 90px">Punkty<input type="number" name="pts" min="1" max="5" value="1"></label>
+      <label class="f" style="flex:0 1 150px">Data<input type="date" name="date" value="${todayISO()}"></label>
+      <label class="f" style="flex:2 1 200px">Notatka<input type="text" name="note" placeholder="opcjonalnie"></label>
+      <button class="btn pri" type="submit">Dodaj</button>
+    </form></div>
+  <div class="grid g2" style="align-items:start">
+    <div class="card"><h3>Aktywne<span class="sub">${sum.length} graczy</span></h3>
+      ${sum.length?`<div class="list">${sum.map(({m,p})=>`<div><span class="sev ${p>=st.strikeLimit?'bad':p===st.strikeLimit-1?'warn':'neu'}"></span><span style="flex:1"><b>${esc(m.name)}</b> ${thBadge(m.th)}<div class="small muted">${esc(activeStrikes(c,m.id).map(s=>s.reason).join(' · '))}</div></span><span class="pill ${p>=st.strikeLimit?'bad':'warn'}">${p}/${st.strikeLimit}</span>${p>=st.strikeLimit?`<button class="btn sm" data-act="medit" data-id="${m.id}">Profil</button>`:''}</div>`).join('')}</div>`:'<div class="empty">Nikt nie ma aktywnych ostrzeżeń.</div>'}
+    </div>
+    <div class="card"><h3>Dziennik<span class="sub">${log.length} wpisów</span></h3>
+      ${log.length?`<div class="list">${log.map(s=>{const exp=new Date(s.date).getTime()<lim;return `<div style="${exp?'opacity:.5':''}"><span style="width:62px" class="small muted">${fmtDate(s.date)}</span><span style="flex:1"><b>${esc(mName(c,s.member))}</b> – ${esc(s.reason)}${s.note?`<div class="small muted">${esc(s.note)}</div>`:''}</span><span class="small ${exp?'muted':''}">${exp?'wygasło':'+'+(s.pts||1)}</span><button class="iconbtn" data-act="sdel" data-id="${s.id}" aria-label="Usuń wpis">✕</button></div>`}).join('')}</div>`:'<div class="empty">Brak wpisów.</div>'}
+    </div>
+  </div>`;
+}
+
+/* ---------- Igrzyska i Raidy ---------- */
+function vEvents(c){
+  const ms=members(c).slice().sort((a,b)=>a.name.localeCompare(b.name,'pl'));const st=c.settings;
+  const cgSum=ms.reduce((a,m)=>a+Math.min(CG_PLAYER_MAX,Number(c.games.pts[m.id])||0),0);
+  const tier=CG_TIERS.filter(t=>cgSum>=t).length;
+  const cg=cgInfo(),rd=raidInfo();
+  const raidSum=ms.reduce((a,m)=>a+(Number(c.raid.gold[m.id])||0),0);
+  const raidAtt=ms.reduce((a,m)=>a+(Number(c.raid.att[m.id])||0),0);
+  const cgOk=ms.filter(m=>(c.games.pts[m.id]||0)>=st.cgTarget).length;
+  return `
+  <div class="pagehead"><div><h2>Igrzyska Klanowe i Raid Weekend</h2><p>${PUBLIC||c.syncedAt?'Wyniki z gry – kto już zrobił swoje, a komu jeszcze brakuje.':'Wpisz wyniki z gry – panel pokaże, kto nie dobił do minimum.'}</p></div></div>
+  <div class="grid g2" style="align-items:start">
+    <div class="card"><h3>Igrzyska Klanowe<span class="sub">${cg.active?'trwają · koniec za '+rel(cg.end-Date.now()):'następne '+fmtDate(cg.start)}</span></h3>
+      <div class="row" style="margin-bottom:12px;align-items:center"><label class="f" style="flex:0 1 140px">Sezon<input type="text" id="cg-season" data-ch="gset" data-f="season" value="${esc(c.games.season)}"></label>
+        <div style="flex:1 1 200px"><div class="small muted" style="display:flex;justify-content:space-between"><span>Klan: <b class="num" style="color:var(--ink)">${cgSum.toLocaleString('pl-PL')}</b> / ${CG_CLAN_MAX.toLocaleString('pl-PL')}</span><span>Poziom ${tier}/6</span></div><div class="bar" style="margin-top:5px"><i style="width:${Math.min(100,cgSum/CG_CLAN_MAX*100)}%"></i></div></div>
+        <button class="btn sm" data-act="greset">Nowe Igrzyska</button></div>
+      <div class="small muted" style="margin-bottom:8px">${cgOk}/${ms.length} graczy ma min. ${st.cgTarget} pkt (próg nagrody bonusowej).</div>
+      <div class="tablewrap"><table><thead><tr><th>Gracz</th><th class="n">Punkty</th><th style="width:40%">Postęp do ${st.cgTarget}</th></tr></thead><tbody>
+      ${ms.map(m=>{const p=Number(c.games.pts[m.id])||0;return `<tr><td>${esc(m.name)}</td><td class="n"><input type="number" min="0" max="${CG_PLAYER_MAX}" step="50" id="cg-${m.id}" data-ch="gpts" data-id="${m.id}" value="${p||''}" placeholder="0"></td><td><div class="bar ${p>=st.cgTarget?'ok':''}"><i style="width:${Math.min(100,p/st.cgTarget*100)}%"></i></div></td></tr>`}).join('')}
+      </tbody></table></div></div>
+    <div class="card"><h3>Raid Weekend<span class="sub">${rd.active?'trwa · koniec za '+rel(rd.end-Date.now()):'następny '+fmtDT(rd.start)}</span></h3>
+      <div class="row" style="margin-bottom:12px;align-items:center"><label class="f" style="flex:0 1 160px">Weekend od<input type="date" id="rd-week" data-ch="rset" data-f="week" value="${esc(c.raid.week)}"></label>
+        <div style="flex:1"><div class="small muted">Złoto stolicy: <b class="num" style="color:var(--ink)">${raidSum.toLocaleString('pl-PL')}</b> · ataki ${raidAtt}/${ms.length*st.raidAttacks}</div></div>
+        <button class="btn sm" data-act="rreset">Nowy weekend</button></div>
+      <div class="tablewrap"><table><thead><tr><th>Gracz</th><th class="c">Ataki</th><th class="n">Złoto stolicy</th></tr></thead><tbody>
+      ${ms.map(m=>{const a=Number(c.raid.att[m.id])||0;return `<tr><td>${esc(m.name)}</td><td class="c"><select id="rd-a-${m.id}" data-ch="ratt" data-id="${m.id}" class="${a<st.raidAttacks?'':'v3'}">${Array.from({length:st.raidAttacks+1},(_,i)=>`<option value="${i}" ${a===i?'selected':''}>${i}/${st.raidAttacks}</option>`).join('')}</select> ${a>=st.raidAttacks?'<span class="pill ok">✓</span>':a>0?'<span class="pill warn">brak '+(st.raidAttacks-a)+'</span>':''}</td><td class="n"><input type="number" min="0" step="100" id="rd-g-${m.id}" data-ch="rgold" data-id="${m.id}" value="${c.raid.gold[m.id]||''}" placeholder="0" style="width:96px"></td></tr>`}).join('')}
+      </tbody></table></div></div>
+  </div>`;
+}
+
+/* ---------- Ogłoszenia ---------- */
+const TPLS=[['warstart','Start wojny'],['warplan','Plan ataków (cele)'],['remind','Przypomnienie o atakach'],['cwlround','CWL – skład rundy'],['cwlbonus','CWL – bonusy'],['cg','Igrzyska – kto poniżej minimum'],['raid','Raid – wolne ataki'],['strikes','Lista ostrzeżeń'],['rules','Zasady klanu'],['recruit','Rekrutacja']];
+function tplText(c,id,opt){
+  const st=c.settings,w=c.war,n=st.name;
+  switch(id){
+    case 'warstart':{if(!w)return '(Brak aktywnej wojny – zaplanuj ją w zakładce Wojna)';
+      return `⚔️ WOJNA: ${n} vs ${w.enemy} (${w.size}v${w.size})\n⏰ Koniec bitwy: ${fmtDT(w.end)}\n1️⃣ Pierwszy atak: swoje lustro (Twój numer na mapie), w ciągu 12 h.\n2️⃣ Drugi atak: czyszczenie według planu – pytaj na czacie.\n🏰 Zamek pełny, bohaterowie nie w ulepszaniu.\n❗ Nieużyty atak = ostrzeżenie. Powodzenia!`}
+    case 'warplan':{if(!w)return '(Brak aktywnej wojny)';
+      const lines=w.lineup.map((id,i)=>{if(!id)return null;const a=w.att[id]||[];const t=a.map(x=>x&&x.t?'#'+x.t:'?').join(' / ');return `${i+1}. ${mName(c,id)} → ${t}`}).filter(Boolean);
+      return `📋 PLAN vs ${w.enemy}\n${lines.join('\n')}\n(cel 1. ataku / 2. ataku)`}
+    case 'remind':{if(!w)return '(Brak aktywnej wojny)';
+      const left=w.lineup.filter(Boolean).map(id=>{const n2=(w.att[id]||[{},{}]).filter(x=>!x||x.s==null).length;return n2?`${mName(c,id)} (${n2})`:null}).filter(Boolean);
+      const t=new Date(w.end).getTime()-Date.now();
+      return left.length?`📣 Do końca wojny: ${t>0?rel(t):'koniec'}!\nBrakujące ataki: ${left.join(', ')}\nNie zostawiajcie gwiazdek na stole 💪`:'✅ Wszyscy wykonali ataki – dzięki!'}
+    case 'cwlround':{const r=c.cwl.rounds[opt-1];if(!r)return '';
+      const ids=Object.entries(r.cells).filter(([,v])=>v).map(([id])=>id);
+      const names=ids.map(id=>mById(c,id)).filter(Boolean).sort((a,b)=>b.th-a.th).map(m=>m.name);
+      return `🏆 CWL – runda ${opt}${r.enemy?' vs '+r.enemy:''}\nSkład (${names.length}): ${names.join(', ')||'– jeszcze nie ustalony –'}\n⚔️ 1 atak na wojnę – na swoje lustro, chyba że plan mówi inaczej.\n❗ Nieużyty atak w CWL = ostrzeżenie i brak bonusu.`}
+    case 'cwlbonus':{const rank=cwlRank(c).filter(x=>x.miss===0).slice(0,Number(c.cwl.bonuses)||0);
+      return `🎖 Bonusy CWL ${c.cwl.season}${c.cwl.league?' ('+c.cwl.league+')':''}:\n${rank.map((x,i)=>`${i+1}. ${mName(c,x.id)} – ${x.stars}★ w ${x.att} atakach`).join('\n')||'– brak –'}\nGratulacje i dzięki wszystkim za walkę!`}
+    case 'cg':{const low=members(c).filter(m=>(c.games.pts[m.id]||0)<st.cgTarget).map(m=>`${m.name} (${c.games.pts[m.id]||0})`);
+      const sum=members(c).reduce((a,m)=>a+Math.min(CG_PLAYER_MAX,c.games.pts[m.id]||0),0);
+      return `🎯 Igrzyska Klanowe: mamy ${sum.toLocaleString('pl-PL')} / ${CG_CLAN_MAX.toLocaleString('pl-PL')} pkt.\n${low.length?`Poniżej ${st.cgTarget}: ${low.join(', ')}`:'Wszyscy mają minimum – super!'}`}
+    case 'raid':{const low=members(c).filter(m=>(c.raid.att[m.id]||0)<st.raidAttacks).map(m=>`${m.name} (${c.raid.att[m.id]||0}/${st.raidAttacks})`);
+      return `🏰 Raid Weekend – ${low.length?`zostały ataki: ${low.join(', ')}`:'wszystkie ataki wykonane, dzięki!'}`}
+    case 'strikes':{const l=members(c).map(m=>({m,p:strikePts(c,m.id)})).filter(x=>x.p>0).sort((a,b)=>b.p-a.p);
+      return `⚠️ Ostrzeżenia (limit ${st.strikeLimit}):\n${l.map(x=>`${x.m.name}: ${x.p}`).join('\n')||'Brak – dobra robota!'}`}
+    case 'rules':return `📜 ZASADY ${n}\n${c.rules}`;
+    case 'recruit':{const mc=members(c).length;
+      return S.cur==='academy'
+        ?`🎓 ${n} ${st.tag} – akademia ${S.clans.main.settings.name}! Uczymy ataków, gramy wojny i CWL. TH${st.minTH}+ mile widziani. Najlepsi awansują do klanu głównego. Wolnych miejsc: ${50-mc}.`
+        :`⚔️ ${n} ${st.tag} szuka aktywnych graczy TH${st.minTH}+! Wojny co tydzień, CWL co miesiąc, Igrzyska i Raidy na maksa. Mamy akademię dla młodszych. Wolnych miejsc: ${50-mc}.`}
+  }
+  return '';
+}
+function vAnnounce(c){
+  if(UI.tplText==null)UI.tplText=tplText(c,UI.tpl,UI.tplOpt);
+  return `
+  <div class="pagehead"><div><h2>Ogłoszenia na czat</h2><p>Gotowe wiadomości z aktualnych danych klanu. Popraw, skopiuj i wklej w grze lub na Discordzie.</p></div></div>
+  <div class="grid" style="grid-template-columns:minmax(200px,260px) 1fr;align-items:start" data-ro-ok>
+    <div class="card" style="padding:8px"><div class="list">${TPLS.map(([k,l])=>`<div style="padding:0;border:0"><button class="btn ${UI.tpl===k?'pri':'ghost'}" style="width:100%;justify-content:flex-start;border-color:transparent" data-act="tpl" data-tpl="${k}" data-ro>${l}</button></div>`).join('')}</div></div>
+    <div class="card"><h3>${TPLS.find(t=>t[0]===UI.tpl)[1]}<span class="sub" id="tpl-count">${UI.tplText.length} znaków</span></h3>
+      ${UI.tpl==='cwlround'?`<div class="row" style="margin-bottom:10px"><label class="f" style="flex:0 1 160px">Runda<select id="tpl-opt" data-ch="tplopt" data-ro-ok>${[1,2,3,4,5,6,7].map(i=>`<option value="${i}" ${UI.tplOpt===i?'selected':''}>Runda ${i}</option>`).join('')}</select></label></div>`:''}
+      <textarea id="tpl-text" rows="12" data-in="tpltext">${esc(UI.tplText)}</textarea>
+      <div class="row" style="margin-top:10px"><button class="btn pri" data-act="copy" data-ro>Kopiuj</button><button class="btn" data-act="tplreset" data-ro>Wygeneruj ponownie</button><span class="small muted">Czat klanowy w grze przyjmuje krótkie wiadomości – dłuższy tekst wklej w częściach albo na Discordzie.</span></div>
+    </div>
+  </div>`;
+}
+
+/* ---------- Ustawienia ---------- */
+function vSettings(c){
+  const st=c.settings;
+  const f=(k,l,type='number',extra='')=>`<label class="f">${l}<input type="${type}" id="set-${k}" data-ch="set" data-f="${k}" value="${esc(st[k])}" ${extra}></label>`;
+  return `
+  <div class="pagehead"><div><h2>Zasady i ustawienia</h2><p>Osobno dla każdego klanu. Teraz edytujesz: <b>${esc(st.name)}</b>.</p></div></div>
+  <div class="grid g2" style="align-items:start">
+    <div class="card"><h3>Klan</h3><div class="stack">
+      <div class="row">${f('name','Nazwa klanu','text')}${f('tag','Tag klanu','text','placeholder="#…"')}</div>
+      <div class="row">${f('minTH','Minimalny TH','number','min="1" max="20"')}${f('maxTH','Najwyższy TH w grze','number','min="10" max="25"')}</div>
+      <div class="row">${f('strikeLimit','Limit ostrzeżeń','number','min="1" max="20"')}${f('strikeDays','Wygasają po (dni)','number','min="1" max="365"')}</div>
+      <div class="row">${f('minDon','Min. donacji / sezon','number','min="0"')}${f('inactiveDays','Nieaktywny po (dni)','number','min="1" max="60"')}</div>
+      <div class="row">${f('cgTarget','Min. pkt w Igrzyskach','number','min="0" max="10000" step="100"')}${f('raidAttacks','Ataki w Raid Weekend','number','min="1" max="10"')}</div>
+      <p class="small muted" style="margin:0">Domyślnie: 4000 pkt w Igrzyskach (próg nagrody bonusowej), 6 ataków w Raid Weekend (5 + bonusowy).</p>
+    </div></div>
+    <div class="card"><h3>Zasady klanu</h3>
+      <textarea id="set-rules" rows="12" data-ch="rules">${esc(c.rules)}</textarea>
+      <p class="small muted" style="margin:8px 0 0">Te zasady trafiają do szablonu „Zasady klanu” w Ogłoszeniach.</p></div>
+    <div class="card"><h3>Synchronizacja z grą</h3>
+      ${S.sync?`<div class="stack" style="gap:8px">${['main','academy'].map(id=>`<div><b>${esc(S.clans[id]?S.clans[id].settings.name:id)}</b><div class="row" style="gap:6px;margin-top:4px">${syncNote(id)||'<span class="pill neu">brak danych</span>'}</div></div>`).join('')}</div>
+      <p class="small muted" style="margin-bottom:0">Z gry aktualizują się: członkowie (dołączenia i odejścia), TH, rola, bohaterowie, donacje, chęć do wojen, ostatnia aktywność, bieżąca wojna z atakami, CWL, Raid Weekend i punkty w Igrzyskach. Ostrzeżenia, notatki, plany celów i zasady zostają Twoje. Dane odświeżają się mniej więcej co godzinę.</p>`
+      :`<p style="margin-top:0">Jeszcze nie podłączona. Gdy repozytorium <span class="kbd">coc-sync</span> zacznie działać, dane z gry pojawią się tu same.</p>`}
+    </div>
+    <div class="card"><h3>Współprzywódcy i zapis</h3>
+      <p style="margin-top:0">${S.mode==='db'?'Dane zapisują się w panelu i są wspólne dla wszystkich, którym udostępnisz tę stronę. Udostępnij ją współprzywódcom przyciskiem <b>Udostępnij</b> na górze strony artefaktu – nadaj im uprawnienie do edycji, a zobaczą te same dane na żywo.':'Ten widok zapisuje dane tylko w tej przeglądarce. Otwórz panel z linku artefaktu na claude.ai, żeby dane były wspólne dla współprzywódców.'}</p>
+      <p class="small muted">Gdy dwie osoby edytują ten sam klan w tej samej chwili, zostaje zapis, który przyszedł później.</p>
+      <div class="row"><button class="btn" data-act="export" data-ro>Kopiuj kopię zapasową (JSON)</button><button class="btn" data-act="import">Wczytaj kopię</button></div></div>
+    <div class="card"><h3>Strefa ryzyka</h3>
+      <p class="small muted" style="margin-top:0">Czyści dane tylko tego klanu (${esc(st.name)}). Historia wojen zostaje.</p>
+      <div class="row"><button class="btn danger" data-act="resetclan">Wyczyść dane klanu</button>${S.demo?'<button class="btn pri" data-act="fresh" data-ro>Zacznij od własnych klanów</button>':''}</div></div>
+  </div>`;
+}
+
+/* =========================================================
+   Modal i toast
+   ========================================================= */
+let modalOnClose=null;
+function openModal(html){const r=document.getElementById('modalRoot');r.innerHTML=`<div class="modal-bg" data-act="bgclose"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`;const f=r.querySelector('input,select,textarea,button');if(f)f.focus()}
+function closeModal(){document.getElementById('modalRoot').innerHTML=''}
+function confirmModal(title,text,okLabel,fn,danger=true){
+  openModal(`<h3>${title}</h3><p>${text}</p><div class="foot"><button class="btn ghost" data-act="close">Anuluj</button><button class="btn ${danger?'danger':'pri'}" data-act="confirmok">${okLabel}</button></div>`);
+  modalOnClose=fn;
+}
+function toast(t){const el=document.createElement('div');el.className='toast';el.textContent=t;document.body.appendChild(el);setTimeout(()=>el.remove(),2600)}
+async function copyText(t){
+  try{await navigator.clipboard.writeText(t);toast('Skopiowano')}catch(e){
+    const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(_){}ta.remove();toast(ok?'Skopiowano':'Zaznacz tekst i skopiuj ręcznie (Ctrl+C)')}
+}
+
+/* =========================================================
+   Zdarzenia
+   ========================================================= */
+const A={
+  clan(d){S.cur=d.id;UI.tplText=null;try{localStorage.setItem(LS_UI,JSON.stringify({cur:S.cur}))}catch(e){}render()},
+  fresh(){confirmModal('Zacznij od własnych klanów','Przykładowe dane znikną, a panel będzie pusty i gotowy na Twoje klany. Zaczniesz od ustawień (nazwa, tag), potem dodasz członków.','Zaczynam',()=>startFresh(),false)},
+  close(){closeModal()},
+  bgclose(d,el,e){if(e.target===el)closeModal()},
+  confirmok(){const f=modalOnClose;modalOnClose=null;closeModal();if(f)f()},
+  todoDel(d){const c=C();c.todos=c.todos.filter(t=>t.id!==d.id);commit()},
+  msort(d){if(UI.mSort===d.k)UI.mDir*=-1;else{UI.mSort=d.k;UI.mDir=1}render()},
+  hsort(d){UI.hSort=d.k;render()},
+  quick(){UI.quick=!UI.quick;render()},
+  madd(){memberModal(C(),null)},
+  medit(d){const m=mById(C(),d.id);if(m)memberModal(C(),m)},
+  mmove(d){const c=C(),o=S.clans[other(S.cur)];const m=mById(c,d.id);if(!m)return;
+    confirmModal('Przenieść gracza?',`<b>${esc(m.name)}</b> zostanie przeniesiony do <b>${esc(o.settings.name)}</b>. Jego ostrzeżenia zostaną w tym klanie.`,'Przenieś',()=>{
+      c.members=c.members.filter(x=>x.id!==m.id);if(c.war)c.war.lineup=c.war.lineup.map(x=>x===m.id?null:x);
+      const copy=clone(m);copy.status='active';o.members.push(copy);commit(S.cur);commit(other(S.cur));toast(`${m.name} → ${o.settings.name}`)},false)},
+  mdel(d){const c=C();const m=mById(c,d.id);if(!m)return;
+    confirmModal('Usunąć gracza?',`<b>${esc(m.name)}</b> zniknie z listy członków. Jeśli po prostu opuścił klan, lepiej zaznacz „Opuścił klan” – zostanie w statystykach.`,'Usuń',()=>{
+      c.members=c.members.filter(x=>x.id!==m.id);if(c.war)c.war.lineup=c.war.lineup.map(x=>x===m.id?null:x);c.cwl.pool=c.cwl.pool.filter(x=>x!==m.id);commit()})},
+  bulk(){openModal(`<h3>Dodaj wielu graczy</h3><form class="stack" data-form="bulk"><label class="f">Jedna linia = jeden gracz. Format: <span class="kbd">Nick; TH; #TAG</span> (TH i tag opcjonalne)<textarea name="list" rows="10" placeholder="Szczerbiec; 17; #2PQ8L0Y\nZbyszko; 16\nOla_xD"></textarea></label><div class="foot"><button type="button" class="btn ghost" data-act="close">Anuluj</button><button class="btn pri" type="submit">Dodaj</button></div></form>`)},
+  wauto(){const c=C();c.war.lineup=autoLineup(c,c.war.size);commit();toast('Skład ułożony wg TH i bohaterów')},
+  wmirror(){const c=C();c.war.lineup.forEach((id,i)=>{if(!id)return;const a=c.war.att[id]||(c.war.att[id]=[{t:null,s:null,d:null},{t:null,s:null,d:null}]);a[0]=a[0]||{};if(a[0].s==null)a[0].t=i+1});commit();toast('Pierwsze ataki: lustro')},
+  wend(){const c=C();const w=c.war;const k=warCalc(w);const miss=w.lineup.filter(Boolean).map(id=>({id,n:(w.att[id]||[{},{}]).filter(x=>!x||x.s==null).length})).filter(x=>x.n);
+    const res=warResult(k.stars,k.pct,Number(w.enemyStars)||0,Number(w.enemyPct)||0);
+    openModal(`<h3>Zakończ wojnę vs ${esc(w.enemy)}</h3><form class="stack" data-form="endwar">
+      <p style="margin:0">Wynik: <b>${k.stars}★ (${k.pct.toFixed(1).replace('.',',')}%)</b> : <b>${Number(w.enemyStars)||0}★ (${Number(w.enemyPct)||0}%)</b> – <span class="pill ${res==='W'?'ok':res==='L'?'bad':'neu'}">${res==='W'?'Wygrana':res==='L'?'Przegrana':'Remis'}</span></p>
+      <p class="small muted" style="margin:0">Sprawdź, czy gwiazdki wroga są wpisane. Wojna trafi do historii i statystyk graczy.</p>
+      ${miss.length?`<div><b>Nieużyte ataki:</b><div class="chk-grid" style="margin-top:6px">${miss.map(x=>`<label class="check"><input type="checkbox" name="strike_${x.id}" checked> ${esc(mName(c,x.id))} (${x.n})</label>`).join('')}</div><p class="small muted">Zaznaczonym dodam ostrzeżenie „Nieużyty atak w wojnie”.</p></div>`:'<p class="pill ok" style="align-self:flex-start">Wszystkie ataki wykonane</p>'}
+      <div class="foot"><button type="button" class="btn ghost" data-act="close">Anuluj</button><button class="btn pri" type="submit">Zapisz w historii</button></div></form>`)},
+  hdel(d){confirmModal('Usunąć wojnę z historii?','Statystyki graczy przeliczą się bez niej.','Usuń',()=>{delHistory(d.id);render()})},
+  cwlpool(){const c=C();const sel=new Set(c.cwl.pool);
+    openModal(`<h3>Pula graczy na CWL</h3><form class="stack" data-form="cwlpool"><p class="small muted" style="margin:0">Zaznacz wszystkich, którzy mogą zagrać w tym sezonie (więcej niż ${c.cwl.size}, żeby rotować skład).</p>
+      <div class="row"><button type="button" class="btn sm" data-act="poolall">Wszyscy chętni</button><button type="button" class="btn sm" data-act="poolnone">Nikt</button></div>
+      <div class="chk-grid">${members(c).slice().sort((a,b)=>b.th-a.th).map(m=>`<label class="check"><input type="checkbox" name="p_${m.id}" data-war="${m.warPref}" ${sel.has(m.id)?'checked':''}> ${esc(m.name)} <span class="muted small">TH${m.th}</span></label>`).join('')}</div>
+      <div class="foot"><button type="button" class="btn ghost" data-act="close">Anuluj</button><button class="btn pri" type="submit">Zapisz pulę</button></div></form>`)},
+  poolall(d,el){el.closest('form').querySelectorAll('input[type=checkbox]').forEach(i=>i.checked=i.dataset.war==='in')},
+  poolnone(d,el){el.closest('form').querySelectorAll('input[type=checkbox]').forEach(i=>i.checked=false)},
+  cwlclose(){const c=C();confirmModal('Zamknąć sezon CWL?',`Podsumowanie sezonu ${esc(c.cwl.season)} trafi do archiwum, a tabela zostanie wyczyszczona. Pula graczy zostaje.`,'Nowy sezon',()=>{
+    const cw=c.cwl;const rank=cwlRank(c).filter(x=>x.miss===0).slice(0,Number(cw.bonuses)||0);
+    c.cwlArchive.push({season:cw.season,league:cw.league,w:cw.rounds.filter(r=>r.result==='W').length,l:cw.rounds.filter(r=>r.result==='L').length,bonus:rank.map(x=>mName(c,x.id)),totals:cwlTotals(c).map(x=>({id:x.id,name:mName(c,x.id),s:x.stars,a:x.att,m:x.miss}))});
+    if(c.cwlArchive.length>24)c.cwlArchive=c.cwlArchive.slice(-24);
+    const n=newCwl();n.pool=cw.pool;n.size=cw.size;n.league=cw.league;n.bonuses=cw.bonuses;const d=new Date();if(d.getDate()>11)d.setMonth(d.getMonth()+1);n.season=monthKey(d);c.cwl=n;commit()},false)},
+  sdel(d){const c=C();c.strikes=c.strikes.filter(s=>s.id!==d.id);commit()},
+  greset(){const c=C();confirmModal('Nowe Igrzyska?','Punkty wszystkich graczy zostaną wyzerowane.','Wyzeruj',()=>{c.games={season:monthKey(),pts:{}};commit()})},
+  rreset(){const c=C();confirmModal('Nowy Raid Weekend?','Ataki i złoto wszystkich graczy zostaną wyzerowane.','Wyzeruj',()=>{c.raid={week:raidInfo().start.toISOString().slice(0,10),att:{},gold:{}};commit()})},
+  tpl(d){UI.tpl=d.tpl;UI.tplText=null;render()},
+  tplgo(d){UI.tpl=d.tpl;UI.tplText=null},
+  tplreset(){UI.tplText=null;render()},
+  copy(){copyText(document.getElementById('tpl-text').value)},
+  export(){copyText(JSON.stringify({app:'coc-panel',v:1,clans:S.clans,history:S.history.filter(h=>!h.demo)}))},
+  import(){openModal(`<h3>Wczytaj kopię zapasową</h3><form class="stack" data-form="import"><label class="f">Wklej skopiowany wcześniej JSON<textarea name="json" rows="8"></textarea></label><p class="small muted" style="margin:0">Zastąpi obecne dane obu klanów i dopisze historię wojen.</p><div class="foot"><button type="button" class="btn ghost" data-act="close">Anuluj</button><button class="btn pri" type="submit">Wczytaj</button></div></form>`)},
+  resetclan(){const c=C();confirmModal('Wyczyścić dane klanu?',`Członkowie, wojna, CWL, ostrzeżenia i eventy klanu <b>${esc(c.settings.name)}</b> zostaną usunięte.`,'Wyczyść',()=>{const d=defaultClan(S.cur);d.settings.name=c.settings.name;d.settings.tag=c.settings.tag;S.clans[S.cur]=d;commit()})}
+};
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]');if(!el)return;
+  if(PUBLIC&&!['clan','msort','hsort','close','bgclose'].includes(el.dataset.act))return;
+  const fn=A[el.dataset.act];if(!fn)return;
+  if(el.tagName==='A'&&el.dataset.act!=='tplgo')e.preventDefault();
+  if(el.tagName==='TR'&&e.target.closest('input,select,button,a'))return;
+  fn(el.dataset,el,e);
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+
+const CH={
+  todo(d,el){const t=C().todos.find(x=>x.id===d.id);if(t){t.done=el.checked;commit()}},
+  mfilter(d,el){UI.mFilter=el.value;render()},
+  mfield(d,el){const m=mById(C(),d.id);if(!m)return;let v=el.value;if(['th','don','rec'].includes(d.f))v=clampNum(v,0,d.f==='th'?40:1e7);m[d.f]=v;commit()},
+  wline(d,el){const c=C(),w=c.war;const i=Number(d.i);const id=el.value||null;
+    if(id){const j=w.lineup.indexOf(id);if(j>=0&&j!==i)w.lineup[j]=w.lineup[i]}
+    w.lineup[i]=id;if(id&&!w.att[id])w.att[id]=[{t:i+1,s:null,d:null},{t:null,s:null,d:null}];commit()},
+  watt(d,el){const w=C().war;const a=w.att[d.id]||(w.att[d.id]=[{t:null,s:null,d:null},{t:null,s:null,d:null}]);const j=Number(d.j);a[j]=a[j]||{t:null,s:null,d:null};
+    const v=el.value===''?null:Number(el.value);
+    if(d.f==='t')a[j].t=v;if(d.f==='s'){a[j].s=v;if(v===3)a[j].d=100;}if(d.f==='d')a[j].d=v==null?null:clampNum(v,0,100);commit()},
+  eth(d,el){const w=C().war;w.enemyTH[Number(d.i)]=el.value?Number(el.value):null;commit()},
+  wenemy(d,el){const w=C().war;w[d.f]=el.value===''?0:Math.max(0,Number(el.value));commit()},
+  hrange(d,el){UI.hRange=Number(el.value);render()},
+  cwlset(d,el){const cw=C().cwl;cw[d.f]=(d.f==='size'||d.f==='bonuses')?clampNum(el.value,0,50):el.value;commit()},
+  cwlround(d,el){C().cwl.rounds[Number(d.i)][d.f]=el.value;commit()},
+  cwlcell(d,el){const r=C().cwl.rounds[Number(d.i)];if(el.value)r.cells[d.id]=el.value;else delete r.cells[d.id];commit()},
+  gset(d,el){C().games[d.f]=el.value;commit()},
+  gpts(d,el){const g=C().games;const v=el.value===''?0:clampNum(el.value,0,CG_PLAYER_MAX);if(v)g.pts[d.id]=v;else delete g.pts[d.id];commit()},
+  rset(d,el){C().raid[d.f]=el.value;commit()},
+  ratt(d,el){C().raid.att[d.id]=Number(el.value);commit()},
+  rgold(d,el){const v=el.value===''?0:clampNum(el.value,0,1e7);C().raid.gold[d.id]=v;commit()},
+  set(d,el){const st=C().settings;const num=!['name','tag'].includes(d.f);st[d.f]=num?clampNum(el.value,0,100000):el.value.trim();if(d.f==='name'&&!st.name)st.name=S.cur==='main'?'Mój klan':'Moja Akademia';commit()},
+  rules(d,el){C().rules=el.value;commit()},
+  tplopt(d,el){UI.tplOpt=Number(el.value);UI.tplText=null;render()}
+};
+document.addEventListener('change',e=>{const el=e.target;const k=el.dataset&&el.dataset.ch;if(k&&CH[k])CH[k](el.dataset,el)});
+document.addEventListener('input',e=>{const el=e.target;const k=el.dataset&&el.dataset.in;
+  if(k==='msearch'){UI.mSearch=el.value;render()}
+  if(k==='tpltext'){UI.tplText=el.value;const cc=document.getElementById('tpl-count');if(cc)cc.textContent=el.value.length+' znaków'}
+});
+document.addEventListener('submit',e=>{
+  const f=e.target;const k=f.dataset.form;if(!k)return;e.preventDefault();
+  const c=C();const fd=new FormData(f);const g=n=>(fd.get(n)??'').toString().trim();
+  if(k==='todo'){const t=document.getElementById('todo-new').value.trim();if(!t)return;c.todos.push({id:uid(),text:t,done:false});commit();return}
+  if(k==='member'){
+    const isNew=!!f.dataset.new;let m=isNew?{id:f.dataset.id,status:'active'}:mById(c,f.dataset.id);if(!m)return;
+    if(!g('name')){toast('Wpisz nick gracza');return}
+    Object.assign(m,{name:g('name'),tag:g('tag').toUpperCase(),th:Number(g('th')),role:g('role'),warPref:g('warPref'),don:clampNum(g('don'),0,1e7),rec:clampNum(g('rec'),0,1e7),joined:g('joined'),lastSeen:g('lastSeen'),notes:g('notes')});
+    m.heroes={};HEROES.forEach(([h])=>m.heroes[h]=clampNum(g('h_'+h),0,200));
+    if(!isNew)m.status=fd.get('left')?'left':'active';
+    if(isNew)c.members.push(m);
+    if(m.status==='left'&&c.war)c.war.lineup=c.war.lineup.map(x=>x===m.id?null:x);
+    closeModal();commit();toast(isNew?'Dodano gracza':'Zapisano');return}
+  if(k==='bulk'){
+    const lines=g('list').split('\n').map(l=>l.trim()).filter(Boolean);let n=0;
+    lines.forEach(l=>{const p=l.split(/[;,\t]/).map(x=>x.trim());if(!p[0])return;const th=clampNum(String(p[1]||'').replace(/\D/g,'')||c.settings.minTH,1,c.settings.maxTH);
+      c.members.push({id:uid(),name:p[0],tag:(p[2]||'').toUpperCase(),th,role:'member',heroes:{},warPref:'in',don:0,rec:0,joined:todayISO(),lastSeen:todayISO(),notes:'',status:'active'});n++});
+    closeModal();commit();toast('Dodano graczy: '+n);return}
+  if(k==='newwar'){
+    const size=Number(g('size'));const endV=g('end');const end=endV?new Date(endV):new Date(Date.now()+47*36e5);
+    const lineup=fd.get('auto')?autoLineup(c,size):Array(size).fill(null);const att={};
+    lineup.forEach((id,i)=>{if(id)att[id]=[{t:fd.get('mirror')?i+1:null,s:null,d:null},{t:null,s:null,d:null}]});
+    c.war={id:uid(),enemy:g('enemy')||'Przeciwnik',enemyTag:g('enemyTag').toUpperCase(),size,type:'normal',start:new Date().toISOString(),end:end.toISOString(),lineup,enemyTH:Array(size).fill(null),enemyNote:[],att,enemyStars:0,enemyPct:0};
+    commit();return}
+  if(k==='endwar'){
+    const w=c.war;const h=archiveWar(c,S.cur,w,false);
+    w.lineup.filter(Boolean).forEach(id=>{if(fd.get('strike_'+id))c.strikes.push({id:uid(),member:id,reason:'Nieużyty atak w wojnie',pts:1,date:todayISO(),note:'vs '+w.enemy})});
+    c.war=null;closeModal();putHistory(h);commit();toast('Wojna zapisana w historii');return}
+  if(k==='strike'){
+    if(!g('member')){toast('Wybierz gracza');return}
+    c.strikes.push({id:uid(),member:g('member'),reason:g('reason'),pts:clampNum(g('pts'),1,5),date:g('date')||todayISO(),note:g('note')});commit();toast('Dodano ostrzeżenie');return}
+  if(k==='cwlpool'){
+    c.cwl.pool=members(c).filter(m=>fd.get('p_'+m.id)).map(m=>m.id);closeModal();commit();return}
+  if(k==='import'){
+    try{const o=JSON.parse(g('json'));if(!o||!o.clans)throw 0;
+      S.clans.main=normalize(o.clans.main,'main');S.clans.academy=normalize(o.clans.academy,'academy');S.demo=false;closeModal();
+      (o.history||[]).forEach(h=>{if(h&&h.id&&h.clan)putHistory(h)});commit('main');commit('academy');toast('Wczytano kopię')}
+    catch(err){toast('To nie wygląda na kopię z tego panelu')}
+    return}
+});
+
+boot();
+</script>
+</body>
+</html>
