@@ -45,6 +45,10 @@ header.top{grid-column:1/-1;display:flex;align-items:center;gap:16px;padding:12p
 .switch button[aria-pressed="true"]{background:var(--panel2);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
 .sync{font-family:var(--cond);font-size:14px;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap}
 .sync i{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block}
+.who{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.who:empty{display:none}
+.gate{max-width:460px;margin:8vh auto;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
+.gate .card{width:100%;display:flex;flex-direction:column;gap:12px;align-items:center;padding:28px}
 .sync.ok i{background:var(--ok)} .sync.busy i{background:var(--accent)} .sync.err i{background:var(--bad)} .sync.demo i{background:var(--warn)}
 
 nav.side{border-right:1px solid var(--line);padding:16px 10px;display:flex;flex-direction:column;gap:2px;position:sticky;top:63px;align-self:start;height:calc(100vh - 63px);overflow:auto}
@@ -171,7 +175,7 @@ td select{padding:4px 6px}
 .atk{display:flex;align-items:center;gap:5px}
 .atk select.tg{width:60px;padding:4px 4px}
 .atk select.st{width:56px;padding:4px 4px}
-.atk input{width:52px !important;padding:4px 6px}
+.atk input{width:60px !important;padding:4px 6px}
 .war td{padding:6px 8px}
 .atk.done select.st{border-color:rgba(76,194,122,.5)}
 .atk.miss select.st{border-color:rgba(236,90,85,.5)}
@@ -219,6 +223,44 @@ details.card summary{cursor:pointer;font-weight:600}
 .rounds-edit .row{align-items:center;flex-wrap:nowrap}
 body.public select:disabled,body.public input:disabled{opacity:1;cursor:default}
 
+
+/* ---------- profil, dziennik, rozpoznanie ---------- */
+.modal.wide{width:min(940px,100%)}
+.profhead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.ptiles{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:12px}
+.ptiles .v{font-size:26px}
+.hgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.hrow{display:flex;align-items:center;gap:6px}
+.tm{font-family:var(--cond);font-size:12.5px;margin-top:2px;white-space:nowrap}
+.tm.ok{color:var(--ok)}.tm.mid{color:var(--gold)}.tm.late{color:var(--bad)}
+.tcell{font-style:normal;display:inline-flex;align-items:center;justify-content:center;width:42px;height:28px;border-radius:8px;font-family:var(--cond);font-weight:700;font-size:14px;border:1px solid var(--line)}
+.legend .tcell{width:32px;height:22px;font-size:12px;margin-right:3px}
+.tcell.ok{background:rgba(76,194,122,.16);color:var(--ok);border-color:rgba(76,194,122,.45)}
+.tcell.mid{background:rgba(242,181,58,.13);color:var(--gold);border-color:rgba(242,181,58,.35)}
+.tcell.late{background:rgba(236,90,85,.16);color:var(--bad);border-color:rgba(236,90,85,.45)}
+.dcell{font-family:var(--cond);font-weight:700;font-size:14px;color:var(--ok)}
+.seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:2px;gap:2px}
+.seg button{border:0;background:transparent;color:var(--muted);padding:5px 11px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--ink)}
+.plink{color:var(--ink);text-decoration:none;cursor:pointer}
+.plink:hover{color:var(--accent);text-decoration:underline}
+a.name.plink{font-weight:700}
+.scout{margin-bottom:14px}
+.scoutgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:18px}
+@media (max-width:900px){.scoutgrid{grid-template-columns:1fr}}
+.facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;align-content:start}
+.facts > div{display:flex;flex-direction:column;font-size:14px}
+.facts .muted{font-size:12.5px}
+.thcmp{display:flex;flex-direction:column;gap:6px}
+.thcmp .r{display:grid;grid-template-columns:50px 1fr 52px;gap:8px;align-items:center}
+.thcmp .bars{display:flex;flex-direction:column;gap:3px}
+.thcmp .bar{height:6px}
+.bar.them > i{background:var(--bad)}
+tr.mine td{background:var(--accent-soft) !important}
+.thn{font-family:var(--cond);margin-right:6px;color:var(--muted)}
+.thn b{color:var(--ink)}
+.logday{margin-bottom:12px}
+.logday h3{font-size:16px;text-transform:capitalize}
 /* ---------- modal & toast ---------- */
 .modal-bg{position:fixed;inset:0;background:rgba(5,8,14,.72);display:flex;align-items:flex-start;justify-content:center;padding:6vh 14px;z-index:100;overflow:auto}
 .modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;width:min(620px,100%);padding:20px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
@@ -257,6 +299,7 @@ pre.msg{white-space:pre-wrap}
       <button type="button" data-act="clan" data-id="academy" id="sw-academy"><span class="dot" style="background:var(--elixir)"></span><span id="sw-academy-l">Akademia</span></button>
     </div>
     <div class="sync" id="sync"><i></i><span>Wczytywanie…</span></div>
+    <div id="who" class="who"></div>
   </header>
   <nav class="side" id="nav"></nav>
   <main id="main"><div class="loading">Wczytywanie danych klanu…</div></main>
@@ -265,7 +308,11 @@ pre.msg{white-space:pre-wrap}
 
 <script>
 "use strict";
-const PUBLIC=(document.querySelector('meta[name="panel-mode"]')||{}).content==='public';
+const MODE=(document.querySelector('meta[name="panel-mode"]')||{}).content||'private';
+const PUBLIC=MODE==='public', FIRE=MODE==='firebase';
+/* Konfiguracja Firebase (tylko tryb "firebase"). Te dane nie są tajne – dostęp chronią reguły Firestore. */
+const FIREBASE_CONFIG=null;
+const FB_SDK='https://www.gstatic.com/firebasejs/10.12.2/';
 /* =========================================================
    Stałe gry
    ========================================================= */
@@ -287,6 +334,7 @@ const NAV=[
   ['czlonkowie','Członkowie','<path d="M16 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm-8 0a3 3 0 1 0-3-3 3 3 0 0 0 3 3zm0 2c-2.7 0-6 1.3-6 3.5V19h7v-2.5c0-1.2.5-2.3 1.4-3.2A9 9 0 0 0 8 13zm8 0c-3 0-7 1.5-7 4v2h14v-2c0-2.5-4-4-7-4z"/>'],
   ['wojna','Wojna','<path d="M6.9 3 3 6.9l4.3 4.3-2.1 2.1 1.4 1.4 2.1-2.1 7.8 7.8L21 21l-.6-4.5-7.8-7.8 2.1-2.1-1.4-1.4-2.1 2.1z"/>'],
   ['historia','Historia i statystyki','<path d="M4 20h16v-2H4zm1-4h3V9H5zm5 0h3V4h-3zm5 0h3v-5h-3z"/>'],
+  ['dziennik','Dziennik klanu','<path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-7 14H7v-2h5zm5-4H7v-2h10zm0-4H7V7h10z"/>'],
   ['cwl','Liga (CWL)','<path d="M17 4V2H7v2H3v4a4 4 0 0 0 4 4h.3A5 5 0 0 0 11 15v3H8v2h8v-2h-3v-3a5 5 0 0 0 3.7-3H17a4 4 0 0 0 4-4V4zM5 8V6h2v4a2 2 0 0 1-2-2zm14 0a2 2 0 0 1-2 2V6h2z"/>'],
   ['ostrzezenia','Ostrzeżenia','<path d="M1 21h22L12 2zm12-3h-2v-2h2zm0-4h-2v-4h2z"/>'],
   ['eventy','Igrzyska i Raidy','<path d="M12 2 9.2 8.6 2 9.2l5.5 4.7L5.8 21 12 17.3 18.2 21l-1.7-7.1L22 9.2l-7.2-.6z"/>'],
@@ -298,8 +346,8 @@ const NAV=[
 /* =========================================================
    Stan
    ========================================================= */
-const S={clans:{main:null,academy:null},history:[],cur:'main',view:'pulpit',mode:'loading',demo:false,readOnly:false,db:null,ready:false,sync:null,syncErr:null};
-const UI={cwlSort:'th',mSearch:'',mFilter:'active',mSort:'role',mDir:1,quick:false,hRange:10,hSort:'stars',tpl:'warstart',tplOpt:1,tplText:null,newTodo:''};
+const S={clans:{main:null,academy:null},history:[],cur:'main',view:'pulpit',mode:'loading',demo:false,readOnly:false,db:null,ready:false,sync:null,syncErr:null,gate:null,gateMsg:'',user:null,arch:null};
+const UI={cwlView:'res',logFilter:'all',logScope:'cur',cwlSort:'th',mSearch:'',mFilter:'active',mSort:'role',mDir:1,quick:false,hRange:10,hSort:'stars',tpl:'warstart',tplOpt:1,tplText:null,newTodo:''};
 const dirty={},saving={},again={},timers={};
 const LS_KEY='coc-panel-v1', LS_HIST='coc-panel-hist-v1', LS_UI='coc-panel-ui';
 
@@ -310,7 +358,7 @@ function todayISO(){const d=new Date();return d.getFullYear()+'-'+String(d.getMo
 function monthKey(d=new Date()){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
 function fmtDate(s){if(!s)return '—';const d=new Date(s);if(isNaN(d))return s;return d.toLocaleDateString('pl-PL',{day:'numeric',month:'short'})}
 function fmtDT(d){return new Date(d).toLocaleString('pl-PL',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}
-function daysAgo(s){if(!s)return null;const d=new Date(s);if(isNaN(d))return null;return Math.floor((Date.now()-d.getTime())/864e5)}
+function daysAgo(s){if(!s)return null;const d=new Date(s);if(isNaN(d))return null;return Math.max(0,Math.floor((Date.now()-d.getTime())/864e5))}
 function rel(ms){ms=Math.max(0,ms);const m=Math.floor(ms/6e4),d=Math.floor(m/1440),h=Math.floor((m%1440)/60),mm=m%60;if(d>0)return d+' d '+h+' h';if(h>0)return h+' h '+mm+' min';return mm+' min'}
 function clampNum(v,min,max){v=Number(v);if(!isFinite(v))return min;return Math.max(min,Math.min(max,Math.round(v)))}
 function thBadge(th){return `<span class="th t${th}">TH${th}</span>`}
@@ -490,7 +538,7 @@ function syncIdle(){
   if(PUBLIC)return setSync(S.sync?'ok':'busy',S.sync?'Dane z gry · odświeżane co ~30 min':'Wczytywanie danych z gry…');
   if(S.demo)return setSync('demo','Przykład · nic nie jest zapisywane');
   if(S.readOnly)return setSync('neu','Tylko podgląd');
-  if(S.mode==='db')return setSync('ok','Zapisano · wspólne dla współprzywódców');
+  if(S.mode==='db')return setSync('ok',FIRE?'Zapisano · wspólne dla sztabu':'Zapisano · wspólne dla współprzywódców');
   if(S.mode==='local')return setSync('ok','Zapisano w tej przeglądarce');
 }
 function commit(clanId=S.cur){
@@ -512,7 +560,7 @@ async function flush(id){
 }
 function handleWriteErr(e){
   const code=e&&e.code;
-  if(code==='invalid_argument'&&!S.readOnly){S.readOnly=true;toast('Nie masz uprawnień do zapisu – panel w trybie podglądu');render();syncIdle();return}
+  if((code==='invalid_argument'||code==='permission-denied')&&!S.readOnly){S.readOnly=true;toast('Nie masz uprawnień do zapisu – panel w trybie podglądu');render();syncIdle();return}
   if(code==='quota_exceeded'){setSync('err','Baza pełna – usuń stare wojny w Historii');return}
   setSync('err','Błąd zapisu – spróbuj ponownie');console.warn(e);
 }
@@ -533,17 +581,22 @@ async function boot(){
   readHash();
   if(PUBLIC){document.body.classList.add('public');S.mode='public';S.readOnly=true;S.clans={main:defaultClan('main'),academy:defaultClan('academy')};S.ready=true;syncIdle();render();fetchSync();setInterval(fetchSync,5*60000);return}
   render();fetchSync();setInterval(fetchSync,10*60000);
+  if(FIRE){fireBoot();return}
   let db=null;
   try{db=window.claude&&window.claude.use?await window.claude.use('db'):null}catch(e){db=null}
   if(!db){startLocal();return}
-  S.db=db;S.mode='db';
   try{const u=await window.claude.use('user');if(u&&u.can){const w=await u.can('data.write');if(w===false)S.readOnly=true}}catch(e){}
+  startDb(db);
+}
+function startDb(db){
+  S.db=db;S.mode='db';
   const got={main:false,academy:false},real={main:null,academy:null};let histGot=false;let settled=false;
-  const timeout=setTimeout(()=>{if(!settled){settled=true;S.mode='local';S.db=null;startLocal('Brak połączenia z bazą – pracujesz na kopii w tej przeglądarce')}},10000);
+  const fail=(msg,e)=>{if(FIRE){if(e&&e.code==='permission-denied')return showGate('denied');return showGate('err',msg+(e&&e.message?' ('+e.message+')':''))}S.mode='local';S.db=null;startLocal(msg+' – pracujesz na kopii w tej przeglądarce')};
+  const timeout=setTimeout(()=>{if(!settled){settled=true;fail('Brak połączenia z bazą')}},FIRE?20000:10000);
   const maybeReady=()=>{
     if(settled||!got.main||!got.academy||!histGot)return;
-    settled=true;clearTimeout(timeout);S.ready=true;
-    if(!S.clans.main&&!S.clans.academy){loadDemo()}
+    settled=true;clearTimeout(timeout);S.ready=true;S.gate=null;
+    if(!S.clans.main&&!S.clans.academy){if(FIRE){S.clans.main=defaultClan('main');S.clans.academy=defaultClan('academy');S.demo=false}else loadDemo()}
     else{S.clans.main=normalize(S.clans.main,'main');S.clans.academy=normalize(S.clans.academy,'academy');S.demo=false}
     syncIdle();render();trySync();
   };
@@ -557,13 +610,48 @@ async function boot(){
       }else if(!settled)S.clans[id]=null;
       if(!snap.metadata.fromCache)got[id]=true;
       if(settled){syncIdle();render()}else maybeReady();
-    },err=>{if(!settled){settled=true;clearTimeout(timeout);S.mode='local';S.db=null;startLocal('Baza niedostępna – pracujesz na kopii w tej przeglądarce')}});
+    },err=>{if(!settled){settled=true;clearTimeout(timeout);fail('Baza niedostępna',err)}else if(FIRE&&err&&err.code==='permission-denied')showGate('denied')});
   });
   db.collection('history').orderBy('date','desc').limit(1000).onSnapshot(snap=>{
     if(!(settled&&S.demo))S.history=snap.docs.map(d=>Object.assign({id:d.id},d.data()));
     if(!snap.metadata.fromCache)histGot=true;
     if(settled)render();else maybeReady();
-  },err=>{histGot=true;maybeReady()});
+  },err=>{if(FIRE&&err&&err.code==='permission-denied'&&!settled){settled=true;clearTimeout(timeout);return showGate('denied')}histGot=true;maybeReady()});
+}
+/* ---------- tryb Firebase: logowanie Google + Firestore ---------- */
+function loadScript(src){return new Promise((ok,bad)=>{const el=document.createElement('script');el.src=src;el.onload=ok;el.onerror=()=>bad(new Error(src));document.head.appendChild(el)})}
+function showGate(kind,msg){S.gate=kind;S.gateMsg=msg||'';S.ready=false;setSync(kind==='err'?'err':'busy',kind==='login'?'Niezalogowany':kind==='denied'?'Brak dostępu':kind==='err'?'Błąd':'Łączenie…');render()}
+async function fireBoot(){
+  document.body.classList.add('fire');showGate('wait');
+  if(!FIREBASE_CONFIG||!FIREBASE_CONFIG.apiKey)return showGate('err','Brak konfiguracji Firebase w pliku strony.');
+  try{for(const f of ['firebase-app-compat.js','firebase-auth-compat.js','firebase-firestore-compat.js'])await loadScript(FB_SDK+f)}
+  catch(e){return showGate('err','Nie udało się wczytać Firebase. Sprawdź połączenie z internetem i odśwież stronę.')}
+  firebase.initializeApp(FIREBASE_CONFIG);
+  if(window.FB_EMULATOR){firebase.auth().useEmulator('http://127.0.0.1:9099');firebase.firestore().useEmulator('127.0.0.1',8080)}
+  try{await firebase.auth().getRedirectResult()}catch(e){toast('Logowanie nie powiodło się: '+(e.code||e.message))}
+  let started=false;
+  firebase.auth().onAuthStateChanged(u=>{
+    S.user=u||null;renderWho();
+    if(!u){if(started)location.reload();else showGate('login');return}
+    if(started)return;started=true;
+    S.gate=null;showGate('wait');fetchSync();setInterval(fetchSync,5*60000);
+    startDb(firebase.firestore());
+  });
+}
+async function fireLogin(){
+  const auth=firebase.auth(),prov=new firebase.auth.GoogleAuthProvider();prov.setCustomParameters({prompt:'select_account'});
+  try{await auth.signInWithPopup(prov)}
+  catch(e){if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment','auth/cancelled-popup-request'].includes(e.code)){await auth.signInWithRedirect(prov)}
+    else if(e.code!=='auth/popup-closed-by-user')toast('Logowanie nie powiodło się: '+(e.code||e.message))}
+}
+function renderWho(){const w=document.getElementById('who');if(!w)return;
+  w.innerHTML=FIRE&&S.user?`<span>${esc(S.user.email||'')}</span><button class="btn sm ghost" data-act="logout" data-ro>Wyloguj</button>`:''}
+function gateHTML(){
+  const pub='<a href="./">Publiczna strona klanu →</a>';
+  if(S.gate==='login')return `<div class="gate"><div class="card"><h2>Panel sztabu</h2><p class="muted" style="margin:0">Zaloguj się kontem Google, które przywódca dodał do listy dostępu.</p><button class="btn pri" data-act="login" data-ro>Zaloguj przez Google</button></div>${pub}</div>`;
+  if(S.gate==='denied')return `<div class="gate"><div class="card"><h2>Brak dostępu</h2><p style="margin:0">Konto <b>${esc(S.user&&S.user.email||'')}</b> nie jest na liście osób z dostępem do panelu.</p><p class="small muted" style="margin:0">Poproś przywódcę, żeby dopisał ten adres w regułach Firebase. Możesz też zalogować się innym kontem.</p><button class="btn" data-act="logout" data-ro>Wyloguj i zmień konto</button></div>${pub}</div>`;
+  if(S.gate==='err')return `<div class="gate"><div class="card"><h2>Coś poszło nie tak</h2><p style="margin:0">${esc(S.gateMsg)}</p><button class="btn" data-act="reload" data-ro>Odśwież</button></div></div>`;
+  return '<div class="loading">Łączenie z panelem…</div>';
 }
 function startLocal(note){
   S.mode='local';
@@ -591,11 +679,11 @@ async function startFresh(keepNames){
 function normTag(t){return '#'+String(t||'').toUpperCase().replace(/^#/,'').replace(/O/g,'0')}
 async function fetchSync(){
   // Publiczna strona działa na dowolnym hostingu: najpierw plik obok strony (GitHub Pages), potem prosto z repozytorium.
-  const urls=PUBLIC?['sync.json','https://raw.githubusercontent.com/xSmokee67/coc-sync/main/sync.json']:['sync.json'];
+  const urls=PUBLIC||FIRE?['sync.json','../sync.json','https://raw.githubusercontent.com/xSmokee67/coc-sync/main/sync.json']:['sync.json'];
   try{let j=null;for(const u of urls){try{const r=await fetch(u+'?'+Date.now(),{cache:'no-store'});if(r.ok){j=await r.json();break}}catch(e){}}
     if(!j||!j.clans||!j.generatedAt)return;
     if(S.sync&&S.sync.generatedAt===j.generatedAt)return;
-    S.sync=j;trySync();render()}catch(e){}
+    S.sync=j;trySync();render();fetchArchive()}catch(e){}
 }
 function trySync(){
   const sy=S.sync;if(!sy||!sy.clans||!S.ready||(S.readOnly&&!PUBLIC))return;
@@ -621,7 +709,7 @@ function applySyncClan(id,c,sc,gen){
     const t=normTag(p.tag);seen.add(t);const m=byTag[t]||newMember(p,'active');
     m.name=p.name||m.name;m.tag=p.tag;m.role=p.role||m.role;m.status='active';
     if(p.th)m.th=p.th;if(p.heroes)m.heroes=Object.assign({},m.heroes,p.heroes);if(p.warPref)m.warPref=p.warPref;
-    m.don=p.don||0;m.rec=p.rec||0;if(p.lastActive)m.lastSeen=p.lastActive.slice(0,10);
+    m.don=p.don||0;m.rec=p.rec||0;if(p.lastActive)m.lastSeen=p.lastActive.slice(0,10);m.quietSince=p.lastActive?null:(p.quietSince||null);
   });
   if((sc.members||[]).length)c.members.forEach(m=>{if(m.tag&&m.status!=='left'&&!seen.has(normTag(m.tag)))m.status='left'});
   // wojna
@@ -683,7 +771,7 @@ function syncNote(id){
 /* =========================================================
    Render
    ========================================================= */
-const PUBLIC_VIEWS=['pulpit','czlonkowie','wojna','historia','cwl','eventy'];
+const PUBLIC_VIEWS=['pulpit','czlonkowie','wojna','historia','dziennik','cwl','eventy'];
 function readHash(){const h=(location.hash||'').slice(1);if(NAV.some(n=>n[0]===h)&&(!PUBLIC||PUBLIC_VIEWS.includes(h)))S.view=h}
 window.addEventListener('hashchange',()=>{const v=S.view;readHash();if(v!==S.view&&S.view==='ogloszenia')UI.tplText=null;render();window.scrollTo(0,0)});
 
@@ -691,8 +779,9 @@ function render(){
   const c=C();
   document.body.classList.toggle('academy',S.cur==='academy');
   ['main','academy'].forEach(id=>{document.getElementById('sw-'+id).setAttribute('aria-pressed',String(S.cur===id));const cl=S.clans[id];document.getElementById('sw-'+id+'-l').textContent=cl?cl.settings.name:(id==='main'?'Główny':'Akademia')});
-  renderNav(c);
   const main=document.getElementById('main');
+  if(S.gate){document.getElementById('nav').innerHTML='';main.innerHTML=gateHTML();return}
+  renderNav(c);
   if(!c){main.innerHTML='<div class="loading">Wczytywanie danych klanu…</div>';return}
   document.getElementById('clanTitle').textContent=c.settings.name;
   if(PUBLIC)document.title=c.settings.name+' – panel klanu';
@@ -700,7 +789,7 @@ function render(){
   // zachowaj fokus
   const ae=document.activeElement;const fid=ae&&ae.id&&main.contains(ae)?ae.id:null;let sel=null;
   try{if(fid&&ae.selectionStart!=null)sel=[ae.selectionStart,ae.selectionEnd]}catch(e){}
-  const views={pulpit:vPulpit,czlonkowie:vMembers,wojna:vWar,historia:vHistory,cwl:vCwl,ostrzezenia:vStrikes,eventy:vEvents,ogloszenia:vAnnounce,ustawienia:vSettings};
+  const views={pulpit:vPulpit,czlonkowie:vMembers,wojna:vWar,historia:vHistory,dziennik:vLog,cwl:vCwl,ostrzezenia:vStrikes,eventy:vEvents,ogloszenia:vAnnounce,ustawienia:vSettings};
   main.innerHTML=banner()+(views[S.view]||vPulpit)(c);
   if(fid){const el=document.getElementById(fid);if(el){el.focus({preventScroll:true});if(sel)try{el.setSelectionRange(sel[0],sel[1])}catch(e){}}}
   if(S.readOnly)main.querySelectorAll('input,select,textarea,button[data-act]:not([data-ro])').forEach(el=>{if(!el.closest('[data-ro-ok]'))el.disabled=true});
@@ -742,7 +831,7 @@ function vPulpit(c){
   if(c.war){const k=warCalc(c.war);const left=c.war.lineup.filter(id=>id&&(c.war.att[id]||[]).some(a=>!a||a.s==null)).map(id=>mName(c,id));
     if(left.length)att.push(['acc',`Wojna: ${left.length} graczy z nieużytymi atakami (${esc(left.slice(0,5).join(', '))}${left.length>5?'…':''})`,'wojna'])}
   if(hist[0]){const miss=hist[0].rows.filter(r=>r.a.some(a=>a.s==null));if(miss.length)att.push(['warn',`Ostatnia wojna (${esc(hist[0].enemy)}): nieużyte ataki – ${esc(miss.map(r=>r.name).join(', '))}`,'historia'])}
-  const inact=ms.filter(m=>{const d=daysAgo(m.lastSeen);return d!=null&&d>=st.inactiveDays});
+  const inact=ms.filter(m=>{const d=daysAgo(m.lastSeen)??daysAgo(m.quietSince);return d!=null&&d>=st.inactiveDays});
   if(inact.length)att.push(['warn',`Nieaktywni od ${st.inactiveDays}+ dni: ${esc(inact.map(m=>m.name).join(', '))}`,'czlonkowie']);
   const lowDon=ms.filter(m=>(m.don||0)<st.minDon&&m.role!=='leader');
   if(lowDon.length)att.push(['neu',`Donacje poniżej ${st.minDon}: ${lowDon.length} graczy`,'czlonkowie']);
@@ -779,6 +868,7 @@ function vPulpit(c){
     <div class="card"><h3>Ratusze w klanie</h3>
       ${ths.length?`<div class="thdist">${ths.map(t=>`<div class="r">${thBadge(t)}<div class="bar"><i style="width:${dist[t]/maxD*100}%"></i></div><span class="num muted">${dist[t]}</span></div>`).join('')}</div>`:'<div class="empty">Dodaj członków, żeby zobaczyć rozkład.</div>'}
     </div>
+    ${S.arch&&S.arch.log?`<div class="card"><h3>Ostatnie zdarzenia<span class="sub"><a href="#dziennik">cały dziennik →</a></span></h3><div class="list">${S.arch.log.filter(e=>e.c===S.cur).slice(-6).reverse().map(e=>{const mm=memberByTag(c,e.tag);return `<div><span class="small muted" style="width:52px">${fmtDate(e.t)}</span><span class="pill ${LOG_CLS[e.k]||'neu'}">${LOG_TXT[e.k]||e.k}</span><span>${mm?`<a href="#" class="plink" data-act="profile" data-id="${mm.id}">${esc(e.n)}</a>`:'<b>'+esc(e.n)+'</b>'}</span></div>`}).join('')||'<div class="muted small">Brak zdarzeń – pojawią się, gdy ktoś dołączy, odejdzie, awansuje albo ulepszy ratusz.</div>'}</div></div>`:''}
     ${PUBLIC?'':`<div class="card"><h3>Notatki sztabu<span class="sub">lista zadań</span></h3>
       <div>${c.todos.map(t=>`<div class="todo ${t.done?'done':''}"><input type="checkbox" class="check" id="todo-${t.id}" data-ch="todo" data-id="${t.id}" ${t.done?'checked':''}><span>${esc(t.text)}</span><button class="iconbtn" data-act="todoDel" data-id="${t.id}" aria-label="Usuń">✕</button></div>`).join('')||'<div class="muted small">Brak zadań.</div>'}</div>
       <form class="row" style="margin-top:10px" data-form="todo"><input type="text" id="todo-new" placeholder="Np. ustalić skład na CWL" style="flex:1"><button class="btn sm" type="submit">Dodaj</button></form>
@@ -802,7 +892,7 @@ function vMembers(c){
   const rows=ms.map(m=>{
     const sp=strikePts(c,m.id);const d=daysAgo(m.lastSeen);
     const ratio=m.rec?(m.don||0)/m.rec:null;
-    return `<tr class="${q2?'':'click'}" ${q2?'':`data-act="medit" data-id="${m.id}"`}>
+    return `<tr class="${q2?'':'click'}" ${q2?'':`data-act="profile" data-id="${m.id}"`}>
       <td><span class="name">${esc(m.name)}</span><div class="tag" style="margin:0">${esc(m.tag)}</div>${m.notes?`<div class="small muted" style="white-space:normal;max-width:260px">${esc(m.notes)}</div>`:''}</td>
       <td>${q2?`<select id="q-th-${m.id}" data-ch="mfield" data-id="${m.id}" data-f="th">${thOpts(c,m.th)}</select>`:thBadge(m.th)}</td>
       <td>${q2?`<select id="q-role-${m.id}" data-ch="mfield" data-id="${m.id}" data-f="role">${Object.entries(ROLES).map(([k,v])=>`<option value="${k}" ${m.role===k?'selected':''}>${v}</option>`).join('')}</select>`:`<span class="${m.role==='member'?'muted':''}">${ROLES[m.role]}</span>`}</td>
@@ -810,7 +900,7 @@ function vMembers(c){
       <td class="c">${q2?`<select id="q-wp-${m.id}" data-ch="mfield" data-id="${m.id}" data-f="warPref"><option value="in" ${m.warPref==='in'?'selected':''}>Tak</option><option value="out" ${m.warPref==='out'?'selected':''}>Nie</option></select>`:(m.warPref==='in'?'<span class="pill ok">tak</span>':'<span class="pill neu">nie</span>')}</td>
       <td class="n">${q2?`<div style="display:flex;gap:4px;justify-content:flex-end"><input type="number" min="0" id="q-don-${m.id}" data-ch="mfield" data-id="${m.id}" data-f="don" value="${m.don||0}" title="Oddane"><input type="number" min="0" id="q-rec-${m.id}" data-ch="mfield" data-id="${m.id}" data-f="rec" value="${m.rec||0}" title="Otrzymane"></div>`:`<b class="${(m.don||0)<st.minDon?'muted':''}">${(m.don||0).toLocaleString('pl-PL')}</b><div class="small muted">otrz. ${(m.rec||0).toLocaleString('pl-PL')}</div>`}</td>
       <td class="c">${sp?`<span class="pill ${sp>=st.strikeLimit?'bad':'warn'}">${sp}/${st.strikeLimit}</span>`:'<span class="muted">–</span>'}</td>
-      <td>${q2?`<input type="date" id="q-seen-${m.id}" data-ch="mfield" data-id="${m.id}" data-f="lastSeen" value="${esc(m.lastSeen||'')}">`:(d==null?'<span class="muted">–</span>':`<span class="${d>=st.inactiveDays?'pill warn':''}">${d===0?'dziś':d===1?'wczoraj':d+' dni temu'}</span>`)}</td>
+      <td>${q2?`<input type="date" id="q-seen-${m.id}" data-ch="mfield" data-id="${m.id}" data-f="lastSeen" value="${esc(m.lastSeen||'')}">`:(d==null?(m.quietSince?`<span class="${daysAgo(m.quietSince)>=st.inactiveDays?'pill warn':'muted small'}" title="Od pierwszego pomiaru gracz nic nie zrobił">brak od ${fmtDate(m.quietSince)}</span>`:'<span class="muted">–</span>'):`<span class="${d>=st.inactiveDays?'pill warn':''}">${d===0?'dziś':d===1?'wczoraj':d+' dni temu'}</span>`)}</td>
     </tr>`}).join('');
   const all=members(c);
   return `
@@ -871,25 +961,29 @@ function vWar(c){
   const memOpts=(sel)=>`<option value="">— wolne miejsce —</option>`+members(c).slice().sort((a,b)=>b.th-a.th).map(m=>`<option value="${m.id}" ${m.id===sel?'selected':''}>${esc(m.name)} · TH${m.th}${m.warPref==='out'?' (rezygnuje)':''}${used.has(m.id)&&m.id!==sel?' ✓':''}</option>`).join('');
   const tgOpts=(sel)=>`<option value="">cel</option>`+Array.from({length:w.size},(_,i)=>`<option value="${i+1}" ${sel===i+1?'selected':''}>#${i+1}</option>`).join('');
   const stOpts=(sel)=>`<option value="" ${sel==null?'selected':''}>—</option>`+[0,1,2,3].map(s=>`<option value="${s}" ${sel===s?'selected':''}>${s}★</option>`).join('');
-  const ended=new Date(w.end).getTime()<Date.now();const live=!!w.api;const dis=live?'disabled':'';const apm=w.apm||2;
+  const ended=new Date(w.end).getTime()<Date.now();const live=!!w.api;const swar=(SC()&&SC().war&&('api-'+SC().war.id)===w.id)?SC().war:null;const dis=live?'disabled':'';const apm=w.apm||2;
   const rows=w.lineup.map((id,i)=>{
     const m=id?mById(c,id):null;const a=id?(w.att[id]||[{},{}]):[];
-    const atk=(j)=>{const x=a[j]||{};const cls=x.s!=null?'done':(ended?'miss':'');
-      return `<div class="atk ${cls}"><select class="tg" id="w-t-${i}-${j}" data-ch="watt" data-id="${id}" data-j="${j}" data-f="t" aria-label="Cel ataku ${j+1}">${tgOpts(x.t)}</select><select class="st" id="w-s-${i}-${j}" data-ch="watt" data-id="${id}" data-j="${j}" data-f="s" aria-label="Gwiazdki" ${dis}>${stOpts(x.s)}</select><input type="number" min="0" max="100" placeholder="%" id="w-d-${i}-${j}" data-ch="watt" data-id="${id}" data-j="${j}" data-f="d" value="${x.d??''}" aria-label="Procent zniszczenia" ${dis}></div>`};
-    return `<tr><td class="n"><b class="num">${i+1}</b></td>
+    const so=swar&&m?swar.ours.find(o=>normTag(o.tag)===normTag(m.tag||'')):null;
+    const atk=(j)=>{const x=a[j]||{};const cls=x.s!=null?'done':(ended?'miss':'');const tw=so&&so.attacks[j]?atkWindow(so.attacks[j],swar.start):null;
+      return `<div class="atk ${cls}"><select class="tg" id="w-t-${i}-${j}" data-ch="watt" data-id="${id}" data-j="${j}" data-f="t" aria-label="Cel ataku ${j+1}">${tgOpts(x.t)}</select><select class="st" id="w-s-${i}-${j}" data-ch="watt" data-id="${id}" data-j="${j}" data-f="s" aria-label="Gwiazdki" ${dis}>${stOpts(x.s)}</select><input type="number" min="0" max="100" placeholder="%" id="w-d-${i}-${j}" data-ch="watt" data-id="${id}" data-j="${j}" data-f="d" value="${x.d??''}" aria-label="Procent zniszczenia" ${dis}></div>${tw?`<div class="tm ${timeClass(tw)}" title="${esc(tw.title)}">${tw.label}</div>`:''}`};
+    return `<tr><td class="n"><b class="num">${i+1}</b>${m?`<div><a href="#" class="plink small muted" data-act="profile" data-id="${m.id}" title="Profil gracza">profil</a></div>`:''}</td>
       <td><select id="w-l-${i}" data-ch="wline" data-i="${i}" style="max-width:170px" ${dis}>${memOpts(id)}</select></td>
       <td>${m?thBadge(m.th):''}</td>
       <td>${m?atk(0):''}</td>${apm>1?`<td>${m?atk(1):''}</td>`:''}
       <td class="c">${m?(a.filter(x=>x&&x.s!=null).length+'/'+apm):''}</td></tr>`}).join('');
+  const eb=(swar&&swar.scout&&swar.scout.bases)||[];
   const bases=Array.from({length:w.size},(_,i)=>{const b=k.best[i+1];const th=w.enemyTH[i]||'';
     return `<div class="base ${b?'s'+b.s:''}"><div style="display:flex;justify-content:space-between;align-items:center"><span class="p">#${i+1}</span>${b?starsHTML(b.s):'<span class="muted small">—</span>'}</div>
       <select id="w-eth-${i}" data-ch="eth" data-i="${i}" aria-label="Ratusz bazy ${i+1}" ${w.api?'disabled':''}><option value="">TH?</option>${Array.from({length:c.settings.maxTH},(_,t)=>c.settings.maxTH-t).map(t=>`<option value="${t}" ${Number(th)===t?'selected':''}>TH${t}</option>`).join('')}</select>
-      <span class="small muted">${b?esc(mName(c,b.by))+' '+b.d+'%':'nie zbita'}</span></div>`}).join('');
+      <span class="small muted">${b?esc(mName(c,b.by))+' '+b.d+'%':'nie zbita'}</span>${eb[i]?`<span class="small muted" title="Suma poziomów bohaterów w obronie">Σ boh. ${HEROES.reduce((a,[k])=>a+(eb[i].h[k]||0),0)}</span>`:''}</div>`}).join('');
   const three=Object.values(k.best).filter(b=>b.s===3).length;
   return `
   <div class="pagehead"><div><h2>Wojna vs ${esc(w.enemy)}</h2><p>${w.size} vs ${w.size} ${w.enemyTag?'· '+esc(w.enemyTag):''} · koniec ${fmtDT(w.end)}</p></div>
     <div class="actions">${live?'':'<button class="btn" data-act="wauto">Ułóż skład</button>'}<button class="btn" data-act="wmirror">Lustro dla 1. ataków</button><a class="btn" href="#ogloszenia" data-act="tplgo" data-tpl="warplan">Plan na czat</a>${live?'':'<button class="btn pri" data-act="wend">Zakończ wojnę</button>'}</div></div>
   ${live?`<div class="row" style="margin:-8px 0 14px;gap:6px"><span class="pill acc">● Na żywo z gry${w.state==='preparation'?' · dzień przygotowań':''}</span><span class="small muted">${PUBLIC?'Skład, gwiazdki i procenty z gry, odświeżane co ok. 30 minut.':'Skład, gwiazdki i procenty uzupełniają się same (co ok. godzinę). Ty ustawiasz cele nieużytych ataków. Po wojnie trafi ona sama do historii.'}</span></div>`:''}
+  ${scoutCard(c,w)}
+  ${swar&&swar.state==='preparation'&&swar.don&&Object.keys(swar.don).length?`<div class="card" style="margin-bottom:14px"><h3>Donacje w dniu przygotowań<span class="sub">wojska, czary i machiny oddane od startu przygotowań</span></h3><div class="row" style="gap:6px">${Object.entries(swar.don).sort((a,b)=>b[1]-a[1]).map(([t,n])=>{const mm=memberByTag(c,t);return `<span class="pill ok">${esc(mm?mm.name:t)} · ${n}</span>`}).join('')}</div></div>`:''}
   <div class="scoreboard">
     <div class="side-us"><span class="cn">${esc(c.settings.name)}</span><span class="small muted">${k.used}/${k.total} ataków · ${k.pct.toFixed(1).replace('.',',')}%</span></div>
     <div class="center"><div class="bigscore"><span class="st">${k.stars}★</span><span class="vs">:</span><span>${es}★</span></div>
@@ -956,6 +1050,18 @@ function cwlRoundStates(cw){
   cw.rounds.forEach((r,i)=>{const has=Object.values(r.cells).some(Boolean);if(has&&!r.result){if(cur<0)cur=i;else if(prep<0)prep=i}});
   return {cur,prep};
 }
+function syncRound(i){const sc=SC();return sc&&sc.cwl&&sc.cwl.rounds?sc.cwl.rounds[i]:null}
+function roundDonSum(i){const r=syncRound(i);return r&&r.don?Object.values(r.don).reduce((a,b)=>a+b,0):0}
+function cwlAltCell(m,i,v){
+  const r=syncRound(i);const tag=normTag(m.tag||'');
+  if(UI.cwlView==='don'){const n=r&&r.don?r.don[tag]:null;return n?`<span class="dcell" title="Oddane w dniu przygotowań rundy ${i+1}">${n}</span>`:'<span class="muted">–</span>'}
+  const x=r&&r.lineup?r.lineup.find(l=>normTag(l.tag)===tag):null;
+  if(!x)return v?`<i class="chipx v${v}">${v==='w'?'●':v==='x'?'✗':v+'★'}</i>`:'<span class="muted">·</span>';
+  if(x.s==null)return r.state==='warEnded'||r.result?'<i class="chipx vx">✗</i>':'<i class="chipx vw">●</i>';
+  const w=atkWindow(x,r.start);if(!w)return `<i class="chipx" title="Atak sprzed włączenia pomiaru czasu">?</i>`;
+  const mid=(w.lo!=null?(w.lo+w.hi)/2:w.hi)/36e5;
+  return `<i class="tcell ${timeClass(w)}" title="${esc(w.title)} (${w.label} po starcie) · ${x.s}★">${Math.round(mid)}h</i>`;
+}
 function vCwl(c){
   const cw=c.cwl;const tot={};cwlTotals(c).forEach(x=>tot[x.id]=x);
   const rank=cwlRank(c);const bonusIds=new Set(rank.slice(0,Number(cw.bonuses)||0).filter(x=>x.miss===0).map(x=>x.id));
@@ -980,19 +1086,24 @@ function vCwl(c){
   </div>
   ${waiting.length?`<div class="card waitbox"><b>Jeszcze nie zaatakowali w rundzie ${cur+1}:</b> ${waiting.map(n=>`<span class="pill acc">${esc(n)}</span>`).join(' ')}</div>`:''}
   <div class="legend">
-    <span><i class="chipx v">·</i> poza składem</span><span><i class="chipx vw">●</i> w składzie, czeka na atak</span><span><i class="chipx v2">2★</i><i class="chipx v3">3★</i> wynik ataku</span><span><i class="chipx vx">✗</i> nieużyty atak</span><span><i class="bonusmark">🎖</i> proponowany bonus</span>
+    <div class="seg" role="group" aria-label="Widok tabeli">${[['res','Wyniki'],['time','Czas ataku'],['don','Donacje']].map(([k,l])=>`<button type="button" data-act="cwlview" data-v="${k}" data-ro aria-pressed="${UI.cwlView===k}">${l}</button>`).join('')}</div>
+    ${UI.cwlView==='time'?'<span><i class="tcell ok">2h</i> do 6 h po starcie</span><span><i class="tcell mid">9h</i> 6–16 h</span><span><i class="tcell late">20h</i> po 16 h</span><span><i class="chipx">?</i> czas nieznany</span>'
+     :UI.cwlView==='don'?'<span>Oddane wojska, czary i machiny w czasie dnia przygotowań danej rundy</span>'
+     :'<span><i class="chipx v">·</i> poza składem</span><span><i class="chipx vw">●</i> w składzie, czeka na atak</span><span><i class="chipx v2">2★</i><i class="chipx v3">3★</i> wynik ataku</span><span><i class="chipx vx">✗</i> nieużyty atak</span><span><i class="bonusmark">🎖</i> proponowany bonus</span>'}
     <label class="sortsel" data-ro-ok>Kolejność <select id="cwl-sort" data-ch="cwlsort" data-ro-ok><option value="th" ${UI.cwlSort!=='stars'?'selected':''}>wg ratusza</option><option value="stars" ${UI.cwlSort==='stars'?'selected':''}>wg wyników</option></select></label>
   </div>
   ${pool.length?`<div class="tablewrap cwl"><table>
-    <thead><tr><th class="pl">Gracz</th>${cw.rounds.map((r,i)=>`<th class="rnd ${i===cur?'curcol':''}"><div class="rn">R${i+1}</div>${resPill(r,i)}<div class="ren" title="${esc(r.enemy||'')}">${r.enemy?esc(r.enemy):(cnt(r)?cnt(r)+'/'+cw.size:'&nbsp;')}</div></th>`).join('')}<th class="n tot">★</th><th class="n tot">Ataki</th><th class="n tot">Nieuż.</th></tr></thead>
+    <thead><tr><th class="pl">Gracz</th>${cw.rounds.map((r,i)=>`<th class="rnd ${i===cur?'curcol':''}"><div class="rn">R${i+1}</div>${resPill(r,i)}<div class="ren" title="${esc(r.enemy||'')}">${UI.cwlView==='don'&&roundDonSum(i)?'Σ '+roundDonSum(i):r.enemy?esc(r.enemy):(cnt(r)?cnt(r)+'/'+cw.size:'&nbsp;')}</div></th>`).join('')}<th class="n tot">★</th><th class="n tot">Ataki</th><th class="n tot">Nieuż.</th></tr></thead>
     <tbody>
     ${pool.map(m=>{const t=tot[m.id]||{stars:0,att:0,miss:0};const bon=bonusIds.has(m.id);
-      return `<tr class="${bon?'bonus':''}"><td class="pl"><div class="pln"><span class="name" title="${esc(m.name)}">${esc(m.name)}</span>${bon?'<i class="bonusmark" title="Proponowany bonus">🎖</i>':''}</div><span class="th sm t${m.th}">TH${m.th}</span>${UI.cwlSort==='stars'&&rankPos[m.id]?`<span class="rk">#${rankPos[m.id]}</span>`:''}</td>
-      ${cw.rounds.map((r,i)=>{const v=r.cells[m.id]||'';return `<td class="cell ${i===cur?'curcol':''}"><select id="cwl-${i}-${m.id}" class="chip v${v}" data-ch="cwlcell" data-i="${i}" data-id="${m.id}" aria-label="${esc(m.name)}, runda ${i+1}">${CWL_VALS.map(([k,l])=>`<option value="${k}" ${v===k?'selected':''}>${l}</option>`).join('')}</select></td>`}).join('')}
+      return `<tr class="${bon?'bonus':''}"><td class="pl"><div class="pln"><a href="#" class="name plink" data-act="profile" data-id="${m.id}" title="Profil: ${esc(m.name)}">${esc(m.name)}</a>${bon?'<i class="bonusmark" title="Proponowany bonus">🎖</i>':''}</div><span class="th sm t${m.th}">TH${m.th}</span>${UI.cwlSort==='stars'&&rankPos[m.id]?`<span class="rk">#${rankPos[m.id]}</span>`:''}</td>
+      ${cw.rounds.map((r,i)=>{const v=r.cells[m.id]||'';if(UI.cwlView!=='res')return `<td class="cell ${i===cur?'curcol':''}">${cwlAltCell(m,i,v)}</td>`;return `<td class="cell ${i===cur?'curcol':''}"><select id="cwl-${i}-${m.id}" class="chip v${v}" data-ch="cwlcell" data-i="${i}" data-id="${m.id}" aria-label="${esc(m.name)}, runda ${i+1}">${CWL_VALS.map(([k,l])=>`<option value="${k}" ${v===k?'selected':''}>${l}</option>`).join('')}</select></td>`}).join('')}
       <td class="n tot"><b>${t.stars}</b></td><td class="n tot">${t.att}</td><td class="n tot">${t.miss?`<span class="pill bad">${t.miss}</span>`:'<span class="muted">0</span>'}</td></tr>`}).join('')}
     </tbody></table></div>
+    ${UI.cwlView==='time'?'<p class="small muted" style="margin-top:8px">Gra nie podaje godziny ataku. Czas liczony jest od startu bitwy do momentu, w którym synchronizacja pierwszy raz zobaczyła atak (dokładność ok. 30 min, a przy budziku co 15 min – ok. 15 min). Najedź na komórkę, żeby zobaczyć dokładne okno.</p>':UI.cwlView==='don'?'<p class="small muted" style="margin-top:8px">Gra nie mówi, do którego zamku poszły wojska – liczymy wszystkie donacje gracza w czasie dnia przygotowań tej rundy (wtedy uzupełnia się zamki wojenne). Dane zbierane od włączenia tej funkcji.</p>':''}
     <p class="small muted" style="margin-top:8px">Bonus: ${Number(cw.bonuses)||0} najlepszych wg gwiazdek, bez nieużytych ataków (każdy nieużyty = –2 w rankingu). ${PUBLIC?'':'Wyniki z gry wpisują się same – kratkę możesz też zmienić ręcznie, klikając ją.'}</p>`
   :`<div class="card empty">${PUBLIC?'Klan nie gra teraz w Lidze Klanów.':'Wybierz pulę graczy na ten sezon – przycisk „Pula graczy”.'}</div>`}
+  ${cwlTableCard(c)}
   ${PUBLIC?'':`<details class="card" style="margin-top:14px"><summary>Ustawienia sezonu i ręczna edycja rund</summary>
     <div class="row" style="margin-top:12px">
       <label class="f">Sezon<input type="text" id="cwl-season" data-ch="cwlset" data-f="season" value="${esc(cw.season)}"></label>
@@ -1003,6 +1114,178 @@ function vCwl(c){
     <div class="rounds-edit">${cw.rounds.map((r,i)=>`<div class="row"><b style="width:30px">R${i+1}</b><input type="text" id="cwl-en-${i}" data-ch="cwlround" data-i="${i}" data-f="enemy" value="${esc(r.enemy)}" placeholder="przeciwnik" style="flex:1"><select id="cwl-res-${i}" data-ch="cwlround" data-i="${i}" data-f="result">${[['','w toku / brak'],['W','Wygrana'],['L','Przegrana'],['D','Remis']].map(([v,l])=>`<option value="${v}" ${r.result===v?'selected':''}>${l}</option>`).join('')}</select></div>`).join('')}</div>
   </details>`}
   ${c.cwlArchive.length?`<div class="card" style="margin-top:14px"><h3>Poprzednie sezony</h3><div class="list">${c.cwlArchive.slice().reverse().map(a=>`<div><b>${esc(a.season)}</b><span class="muted">${esc(a.league||'')}</span><span>${a.w}–${a.l}</span><span class="small muted" style="margin-left:auto">Bonusy: ${esc((a.bonus||[]).join(', ')||'–')}</span></div>`).join('')}</div></div>`:''}`;
+}
+
+/* =========================================================
+   Archiwum z repozytorium (state.json): dziennik, migawki, sezony CWL
+   ========================================================= */
+async function fetchArchive(){
+  if(!(PUBLIC||FIRE))return;
+  const urls=['state.json','../state.json','https://raw.githubusercontent.com/xSmokee67/coc-sync/main/state.json'];
+  for(const u of urls){try{const r=await fetch(u+'?'+Date.now(),{cache:'no-store'});if(r.ok){const j=await r.json();if(j&&(j.snap||j.log||j.history)){S.arch=j;render();return}}}catch(e){}}
+}
+const SC=()=>{const sc=S.sync&&S.sync.clans&&S.sync.clans[S.cur];return sc&&sc.ok?sc:null};
+function hm(ms){if(ms==null||!isFinite(ms))return '';const m=Math.max(0,Math.round(ms/6e4));return Math.floor(m/60)+':'+String(m%60).padStart(2,'0')}
+// czas ataku względem startu bitwy: okno między dwiema synchronizacjami
+function atkWindow(a,start){
+  if(!a||!a.at||!start)return null;
+  const s=new Date(start).getTime(),hi=new Date(a.at).getTime()-s,lo=a.ab?Math.max(0,new Date(a.ab).getTime()-s):null;
+  return {lo,hi,label:lo!=null?('+'+hm(lo)+'–'+hm(hi)+' h'):('do +'+hm(hi)+' h'),title:(a.ab?'Atak między '+fmtDT(a.ab)+' a '+fmtDT(a.at):'Atak przed '+fmtDT(a.at))};
+}
+function timeClass(w){if(!w)return '';const h=(w.lo!=null?(w.lo+w.hi)/2:w.hi)/36e5;return h<6?'ok':h<16?'mid':'late'}
+function memberByTag(c,tag){const t=normTag(tag);return c.members.find(m=>m.tag&&normTag(m.tag)===t)}
+
+/* ---------- Profil gracza ---------- */
+function spark(points,w=280,h=56,color='var(--accent)'){
+  if(points.length<2)return '<div class="small muted">Za mało danych – wykres pojawi się po kilku dniach.</div>';
+  const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+  const X=x=>x1===x0?w/2:4+(x-x0)/(x1-x0)*(w-8),Y=y=>y1===y0?h/2:h-6-(y-y0)/(y1-y0)*(h-14);
+  const d=points.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)).join(' ');
+  const last=points[points.length-1];
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none" aria-hidden="true"><path d="${d} L${X(last[0]).toFixed(1)} ${h} L${X(points[0][0]).toFixed(1)} ${h} Z" fill="${color}" opacity=".12"/><path d="${d}" fill="none" stroke="${color}" stroke-width="2" vector-effect="non-scaling-stroke"/><circle cx="${X(last[0])}" cy="${Y(last[1])}" r="3.5" fill="${color}"/></svg>`;
+}
+function playerAttacks(c,m){
+  const tag=normTag(m.tag||'');const out=[];
+  const wars=(S.arch&&Array.isArray(S.arch.history)?S.arch.history.filter(h=>h.clan===S.cur):[]);
+  if(wars.length)wars.forEach(h=>{const r=h.rows.find(x=>normTag(x.tag)===tag);if(!r)return;r.a.forEach((a,j)=>out.push({date:h.date,kind:'Wojna',enemy:h.enemy,t:a.t,s:a.s,d:a.d,w:atkWindow(a,h.start),miss:a.s==null}))});
+  else histFor(S.cur).forEach(h=>{const r=h.rows.find(x=>x.m===m.id);if(!r)return;r.a.forEach(a=>out.push({date:h.date,kind:'Wojna',enemy:h.enemy,t:a.t,s:a.s,d:a.d,miss:a.s==null}))});
+  const seasons=(S.arch&&S.arch.cwlSeasons&&S.arch.cwlSeasons[S.cur])||{};
+  const cur=SC()&&SC().cwl;
+  if(cur)seasons[cur.season]={rounds:cur.rounds};
+  Object.entries(seasons).forEach(([se,sv])=>(sv.rounds||[]).forEach((r,i)=>{if(!r)return;const x=r.lineup.find(l=>normTag(l.tag)===tag);if(!x)return;
+    const ended=r.result||r.state==='warEnded';if(x.s==null&&!ended)return;
+    out.push({date:(r.start||se).slice(0,10),kind:'CWL R'+(i+1),enemy:r.enemy,t:x.t,s:x.s,d:x.d,w:atkWindow(x,r.start),miss:x.s==null})}));
+  return out.sort((a,b)=>b.date.localeCompare(a.date));
+}
+const LOG_TXT={join:'Dołączył do klanu',rejoin:'Wrócił do klanu',leave:'Odszedł z klanu',promo:'Awans',demo:'Degradacja',th:'Ulepszył ratusz',name:'Zmienił nick'};
+function logLine(e){
+  const cn=id=>S.clans[id]?S.clans[id].settings.name:(id==='main'?'klan główny':'akademia');
+  switch(e.k){
+    case 'join':return 'dołączył do '+esc(cn(e.c));
+    case 'rejoin':return e.a&&e.a!==e.c?'przeszedł z '+esc(cn(e.a))+' do '+esc(cn(e.c)):'wrócił do '+esc(cn(e.c));
+    case 'leave':return 'odszedł z '+esc(cn(e.c));
+    case 'promo':return 'awans: '+esc(ROLES[e.a]||e.a)+' → <b>'+esc(ROLES[e.b]||e.b)+'</b>';
+    case 'demo':return 'degradacja: '+esc(ROLES[e.a]||e.a)+' → <b>'+esc(ROLES[e.b]||e.b)+'</b>';
+    case 'th':return 'ulepszył ratusz: TH'+esc(e.a)+' → <b>TH'+esc(e.b)+'</b>';
+    case 'name':return 'zmienił nick: '+esc(e.a)+' → <b>'+esc(e.b)+'</b>';
+  }return esc(e.k);
+}
+const LOG_CLS={join:'ok',rejoin:'acc',leave:'bad',promo:'ok',demo:'warn',th:'acc',name:'neu'};
+function openProfile(id){
+  const c=C();const m=mById(c,id);if(!m)return;
+  const tag=normTag(m.tag||'');const snaps=(S.arch&&S.arch.snap&&S.arch.snap[tag])||[];
+  const atks=playerAttacks(c,m);const done=atks.filter(a=>!a.miss);
+  const wAt=atks.filter(a=>a.kind==='Wojna'),cAt=atks.filter(a=>a.kind!=='Wojna');
+  const avg=l=>{const d=l.filter(a=>!a.miss);return d.length?(d.reduce((x,a)=>x+a.s,0)/d.length):0};
+  const three=done.filter(a=>a.s===3).length;
+  const logs=(S.arch&&S.arch.log||[]).filter(e=>normTag(e.tag)===tag).slice().reverse();
+  const firstLog=logs.slice().reverse().find(e=>e.k==='join'||e.k==='rejoin');
+  const since=firstLog?fmtDate(firstLog.t):(S.arch&&S.arch.players&&S.arch.players[tag]&&S.arch.players[tag].first?'przed '+fmtDate(S.arch.players[tag].first):(m.joined?fmtDate(m.joined):'—'));
+  // bohaterowie: zmiana w 30 dni
+  const HI={bk:2,aq:3,mp:4,gw:5,rc:6,dd:7};
+  const old=snaps.find(r=>r[0]>=new Date(Date.now()-30*864e5).toISOString().slice(0,10))||snaps[0];
+  const heroRows=HEROES.map(([k,a,full])=>{const now=m.heroes[k]||0;const was=old?old[HI[k]]:null;const dlt=was!=null&&now?now-was:0;
+    return `<div class="hrow" title="${full}"><span class="kbd">${a}</span><b class="num">${now||'–'}</b>${dlt>0?`<span class="pill ok">+${dlt}</span>`:''}</div>`}).join('');
+  const sumPts=snaps.map(r=>[new Date(r[0]).getTime(),r.slice(2,8).reduce((x,y)=>x+y,0)]);
+  const donPts=snaps.map(r=>[new Date(r[0]).getTime(),r[11]||0]);
+  const thUp=logs.filter(e=>e.k==='th');
+  const strikesAll=c.strikes.filter(s=>s.member===m.id).sort((a,b)=>b.date.localeCompare(a.date));
+  const lastTxt=m.lastSeen?(daysAgo(m.lastSeen)===0?'dziś':daysAgo(m.lastSeen)===1?'wczoraj':daysAgo(m.lastSeen)+' dni temu'):(m.quietSince?'brak aktywności od '+fmtDate(m.quietSince):'—');
+  const priv=!PUBLIC;
+  openModal(`<div class="prof">
+    <div class="profhead"><div><h3 style="margin:0">${esc(m.name)}</h3><div class="small muted">${esc(m.tag||'')} · ${ROLES[m.role]} · ${esc(c.settings.name)}${m.status==='left'?' · <span class="pill neu">poza klanem</span>':''}</div></div>${thBadge(m.th)}</div>
+    <div class="tiles ptiles">
+      <div class="tile"><div class="k">Wojny</div><div class="v">${wAt.some(a=>!a.miss)?avg(wAt).toFixed(2).replace('.',',')+'<small> ★/atak</small>':'–'}</div><div class="s">${wAt.filter(a=>!a.miss).length} ataków · ${wAt.filter(a=>a.miss).length} nieużytych</div></div>
+      <div class="tile"><div class="k">CWL</div><div class="v">${cAt.some(a=>!a.miss)?avg(cAt).toFixed(2).replace('.',',')+'<small> ★/atak</small>':'–'}</div><div class="s">${cAt.filter(a=>!a.miss).length} ataków · ${cAt.filter(a=>a.miss).length} nieużytych</div></div>
+      <div class="tile"><div class="k">3★ ogółem</div><div class="v">${done.length?Math.round(three/done.length*100):0}<small>%</small></div><div class="s">${three} z ${done.length} ataków</div></div>
+      <div class="tile"><div class="k">Donacje (sezon)</div><div class="v">${(m.don||0).toLocaleString('pl-PL')}</div><div class="s">otrzymał ${(m.rec||0).toLocaleString('pl-PL')}</div></div>
+      <div class="tile"><div class="k">W klanie</div><div class="v" style="font-size:20px">${since}</div><div class="s">ostatnio: ${esc(lastTxt)}</div></div>
+    </div>
+    <div class="grid g2" style="margin-top:4px">
+      <div class="card"><h3>Bohaterowie<span class="sub">zmiana w 30 dni</span></h3><div class="hgrid">${heroRows}</div>
+        <div class="small muted" style="margin:10px 0 2px">Suma poziomów bohaterów</div>${spark(sumPts)}
+        ${thUp.length?`<div class="small" style="margin-top:6px">${thUp.map(e=>'TH'+e.a+' → TH'+e.b+' · '+fmtDate(e.t)).join('<br>')}</div>`:''}</div>
+      <div class="card"><h3>Donacje<span class="sub">wojska, czary, machiny – łącznie</span></h3>${spark(donPts,280,56,'var(--ok)')}
+        <div class="small muted" style="margin-top:6px">${snaps.length>1?'Od '+fmtDate(snaps[0][0])+': +'+((snaps[snaps.length-1][11]||0)-(snaps[0][11]||0)).toLocaleString('pl-PL')+' oddanych':'Historia zbiera się od pierwszej synchronizacji.'}</div></div>
+    </div>
+    <div class="card" style="margin-top:12px"><h3>Ataki<span class="sub">${atks.length} zapisanych</span></h3>
+      ${atks.length?`<div class="tablewrap" style="max-height:280px;overflow:auto"><table><thead><tr><th>Data</th><th>Gdzie</th><th>Przeciwnik</th><th class="c">Cel</th><th class="c">Wynik</th><th class="n">%</th><th>Czas po starcie</th></tr></thead><tbody>
+      ${atks.slice(0,40).map(a=>`<tr><td>${fmtDate(a.date)}</td><td>${a.kind}</td><td>${esc(a.enemy||'')}</td><td class="c">${a.t?'#'+a.t:'–'}</td><td class="c">${a.miss?'<span class="pill bad">nieużyty</span>':starsHTML(a.s)}</td><td class="n">${a.d!=null?Math.round(a.d):'–'}</td><td>${a.w?`<span class="tm ${timeClass(a.w)}" title="${esc(a.w.title)}">${a.w.label}</span>`:'<span class="muted">–</span>'}</td></tr>`).join('')}
+      </tbody></table></div>`:'<div class="muted small">Brak zapisanych ataków.</div>'}</div>
+    ${logs.length?`<div class="card" style="margin-top:12px"><h3>Dziennik gracza</h3><div class="list">${logs.slice(0,15).map(e=>`<div><span class="small muted" style="width:90px">${fmtDate(e.t)}</span><span class="pill ${LOG_CLS[e.k]||'neu'}">${LOG_TXT[e.k]||e.k}</span><span>${logLine(e)}</span></div>`).join('')}</div></div>`:''}
+    ${priv?`<div class="card" style="margin-top:12px"><h3>Ostrzeżenia i notatki</h3>
+      ${strikesAll.length?`<div class="list">${strikesAll.map(s=>`<div><span class="small muted" style="width:70px">${fmtDate(s.date)}</span><span style="flex:1">${esc(s.reason)}${s.note?' – '+esc(s.note):''}</span><span class="small">+${s.pts||1}</span></div>`).join('')}</div>`:'<div class="small muted">Brak ostrzeżeń.</div>'}
+      ${m.notes?`<p style="margin:10px 0 0"><b>Notatka:</b> ${esc(m.notes)}</p>`:''}</div>`:''}
+    <div class="foot">${priv&&!S.readOnly?`<div class="left"><button type="button" class="btn sm" data-act="medit" data-id="${m.id}">Edytuj gracza</button></div>`:''}<button type="button" class="btn pri" data-act="close" data-ro>Zamknij</button></div>
+  </div>`,'wide');
+}
+
+/* ---------- Dziennik klanu ---------- */
+function vLog(c){
+  const all=(S.arch&&S.arch.log)||[];
+  const f=UI.logFilter||'all',scope=UI.logScope||'cur';
+  let ev=all.filter(e=>scope==='both'||e.c===S.cur);
+  if(f!=='all')ev=ev.filter(e=>f==='move'?['join','rejoin','leave'].includes(e.k):f==='role'?['promo','demo'].includes(e.k):e.k===f);
+  ev=ev.slice().reverse();
+  const groups={};ev.forEach(e=>{const d=e.t.slice(0,10);(groups[d]=groups[d]||[]).push(e)});
+  const days=Object.keys(groups);
+  const cnt=k=>all.filter(e=>(scope==='both'||e.c===S.cur)&&k.includes(e.k)&&new Date(e.t)>Date.now()-30*864e5).length;
+  return `
+  <div class="pagehead"><div><h2>Dziennik klanu</h2><p>Zdarzenia wykryte automatycznie przy każdej synchronizacji z grą.</p></div>
+    <div class="actions" data-ro-ok><select id="log-scope" data-ch="logscope" data-ro-ok><option value="cur" ${scope==='cur'?'selected':''}>Tylko ${esc(c.settings.name)}</option><option value="both" ${scope==='both'?'selected':''}>Oba klany</option></select>
+    <select id="log-filter" data-ch="logfilter" data-ro-ok>${[['all','Wszystkie zdarzenia'],['move','Dołączenia i odejścia'],['role','Awanse i degradacje'],['th','Ulepszenia ratusza'],['name','Zmiany nicków']].map(([k,l])=>`<option value="${k}" ${f===k?'selected':''}>${l}</option>`).join('')}</select></div></div>
+  <div class="tiles">
+    <div class="tile"><div class="k">Dołączyli (30 dni)</div><div class="v" style="color:var(--ok)">${cnt(['join','rejoin'])}</div></div>
+    <div class="tile"><div class="k">Odeszli (30 dni)</div><div class="v" style="color:var(--bad)">${cnt(['leave'])}</div></div>
+    <div class="tile"><div class="k">Awanse (30 dni)</div><div class="v">${cnt(['promo'])}</div></div>
+    <div class="tile"><div class="k">Nowe ratusze (30 dni)</div><div class="v">${cnt(['th'])}</div></div>
+  </div>
+  ${!S.arch?`<div class="card empty">${PUBLIC||FIRE?'Wczytywanie dziennika…':'Dziennik jest dostępny w panelu na GitHubie (panel.html) i na publicznej stronie.'}</div>`
+  :days.length?days.map(d=>`<div class="card logday"><h3>${new Date(d).toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'})}</h3><div class="list">${groups[d].map(e=>{const mm=memberByTag(S.clans[e.c]||c,e.tag);
+    return `<div><span class="small muted" style="width:46px">${new Date(e.t).toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})}</span><span class="pill ${LOG_CLS[e.k]||'neu'}" style="min-width:118px;justify-content:center">${LOG_TXT[e.k]||e.k}</span><span style="flex:1">${mm&&e.c===S.cur?`<a href="#" class="plink" data-act="profile" data-id="${mm.id}">${esc(e.n)}</a>`:`<b>${esc(e.n)}</b>`} ${logLine(e)}</span>${scope==='both'?`<span class="small muted">${esc(S.clans[e.c]?S.clans[e.c].settings.name:e.c)}</span>`:''}</div>`}).join('')}</div></div>`).join('')
+  :'<div class="card empty">Brak zdarzeń. Dziennik zapisuje zmiany od momentu włączenia tej funkcji – pierwsze wpisy pojawią się, gdy ktoś dołączy, odejdzie, awansuje albo ulepszy ratusz.</div>'}`;
+}
+
+/* ---------- Rozpoznanie przeciwnika ---------- */
+function scoutCard(c,w){
+  const sc=SC();const sw=sc&&sc.war&&('api-'+sc.war.id)===w.id?sc.war:null;const s=sw&&sw.scout;
+  if(!s)return '';
+  const ourTH=thDistOf(w.lineup.filter(Boolean).map(id=>(mById(c,id)||{}).th));
+  const theirTH=thDistOf((s.bases&&s.bases.length?s.bases.map(b=>b.th):w.enemyTH)||[]);
+  const levels=[...new Set([...Object.keys(ourTH),...Object.keys(theirTH)].map(Number))].sort((a,b)=>b-a);
+  const mx=Math.max(1,...Object.values(ourTH),...Object.values(theirTH));
+  const hs=h=>HEROES.reduce((a,[k])=>a+(Number(h&&h[k])||0),0);
+  const ourH=w.lineup.filter(Boolean).map(id=>hs((mById(c,id)||{}).heroes)),theirH=(s.bases||[]).map(b=>hs(b.h));
+  const av=l=>l.length?Math.round(l.reduce((a,b)=>a+b,0)/l.length):0;
+  const rec=s.recent||[];
+  return `<div class="card scout"><h3>Rozpoznanie: ${esc(s.name)}<span class="sub">${esc(s.tag)}</span></h3>
+    <div class="scoutgrid">
+      <div class="facts">
+        <div><span class="muted">Liga</span><b>${esc(s.league||'—')}</b></div>
+        <div><span class="muted">Poziom klanu</span><b>${s.level||'—'}</b></div>
+        <div><span class="muted">Bilans wojen</span><b>${s.wins!=null?`${s.wins} W · ${s.losses??'?'} L · ${s.ties??'?'} R`:'ukryty'}</b></div>
+        <div><span class="muted">Seria zwycięstw</span><b>${s.streak??'—'}</b></div>
+        <div><span class="muted">Lokalizacja</span><b>${esc(s.location||'—')}</b></div>
+        <div><span class="muted">Dziennik wojen</span><b>${s.logPublic?'publiczny':'prywatny'}</b></div>
+        ${rec.length?`<div style="grid-column:1/-1"><span class="muted">Ostatnie wojny</span><div class="row" style="gap:4px;margin-top:4px">${rec.map(r=>`<span class="pill ${r.r==='W'?'ok':r.r==='L'?'bad':'neu'}" title="${esc(r.en||'')} ${r.st??''}:${r.est??''}">${r.r||'?'}</span>`).join('')}</div></div>`:''}
+      </div>
+      <div><div class="small muted" style="margin-bottom:6px">Ratusze w wojnie: <span style="color:var(--accent)">■</span> my · <span style="color:var(--bad)">■</span> oni</div>
+        <div class="thcmp">${levels.map(t=>`<div class="r">${thBadge(t)}<div class="bars"><div class="bar"><i style="width:${(ourTH[t]||0)/mx*100}%"></i></div><div class="bar them"><i style="width:${(theirTH[t]||0)/mx*100}%"></i></div></div><span class="num small">${ourTH[t]||0} : ${theirTH[t]||0}</span></div>`).join('')}</div>
+        ${theirH.length?`<div class="small" style="margin-top:8px">Średnia suma bohaterów: <b>${av(ourH)}</b> u nas · <b>${av(theirH)}</b> u nich</div>`:''}</div>
+    </div></div>`;
+}
+function thDistOf(l){const d={};l.forEach(t=>{if(t)d[t]=(d[t]||0)+1});return d}
+
+/* ---------- Tabela grupy CWL ---------- */
+function cwlTableCard(c){
+  const sc=SC();const t=sc&&sc.cwl&&sc.cwl.table;if(!t||!t.length)return '';
+  const me=normTag(c.settings.tag||sc.tag||'');
+  const dist=d=>Object.entries(d||{}).sort((a,b)=>b[0]-a[0]).slice(0,4).map(([th,n])=>`<span class="thn">${n}×<b>${th}</b></span>`).join(' ');
+  const avgTh=d=>{const e=Object.entries(d||{});const n=e.reduce((a,[,v])=>a+v,0);return n?(e.reduce((a,[k,v])=>a+k*v,0)/n).toFixed(1).replace('.',','):'–'};
+  return `<div class="card" style="margin-top:14px"><h3>Tabela grupy<span class="sub">gwiazdki z +10 za każdą wygraną, jak w grze</span></h3>
+    <div class="tablewrap"><table><thead><tr><th class="n">#</th><th>Klan</th><th class="n">★</th><th class="n">% zniszcz.</th><th class="c">W–L</th><th>Najwyższe ratusze w składzie</th><th class="n">Śr. TH</th></tr></thead><tbody>
+    ${t.map((x,i)=>`<tr class="${normTag(x.tag)===me?'mine':''}"><td class="n"><b>${i+1}</b></td><td><span class="name">${esc(x.name)}</span><span class="tag">poz. ${x.level||'?'}</span></td><td class="n"><b>${x.stars}</b></td><td class="n">${x.dest}</td><td class="c">${x.w}–${x.l}${x.d?'–'+x.d:''}</td><td class="small">${dist(x.th)}</td><td class="n">${avgTh(x.th)}</td></tr>`).join('')}
+    </tbody></table></div></div>`;
 }
 
 /* ---------- Ostrzeżenia ---------- */
@@ -1024,7 +1307,7 @@ function vStrikes(c){
     </form></div>
   <div class="grid g2" style="align-items:start">
     <div class="card"><h3>Aktywne<span class="sub">${sum.length} graczy</span></h3>
-      ${sum.length?`<div class="list">${sum.map(({m,p})=>`<div><span class="sev ${p>=st.strikeLimit?'bad':p===st.strikeLimit-1?'warn':'neu'}"></span><span style="flex:1"><b>${esc(m.name)}</b> ${thBadge(m.th)}<div class="small muted">${esc(activeStrikes(c,m.id).map(s=>s.reason).join(' · '))}</div></span><span class="pill ${p>=st.strikeLimit?'bad':'warn'}">${p}/${st.strikeLimit}</span>${p>=st.strikeLimit?`<button class="btn sm" data-act="medit" data-id="${m.id}">Profil</button>`:''}</div>`).join('')}</div>`:'<div class="empty">Nikt nie ma aktywnych ostrzeżeń.</div>'}
+      ${sum.length?`<div class="list">${sum.map(({m,p})=>`<div><span class="sev ${p>=st.strikeLimit?'bad':p===st.strikeLimit-1?'warn':'neu'}"></span><span style="flex:1"><b>${esc(m.name)}</b> ${thBadge(m.th)}<div class="small muted">${esc(activeStrikes(c,m.id).map(s=>s.reason).join(' · '))}</div></span><span class="pill ${p>=st.strikeLimit?'bad':'warn'}">${p}/${st.strikeLimit}</span><button class="btn sm" data-act="profile" data-id="${m.id}" data-ro>Profil</button></div>`).join('')}</div>`:'<div class="empty">Nikt nie ma aktywnych ostrzeżeń.</div>'}
     </div>
     <div class="card"><h3>Dziennik<span class="sub">${log.length} wpisów</span></h3>
       ${log.length?`<div class="list">${log.map(s=>{const exp=new Date(s.date).getTime()<lim;return `<div style="${exp?'opacity:.5':''}"><span style="width:62px" class="small muted">${fmtDate(s.date)}</span><span style="flex:1"><b>${esc(mName(c,s.member))}</b> – ${esc(s.reason)}${s.note?`<div class="small muted">${esc(s.note)}</div>`:''}</span><span class="small ${exp?'muted':''}">${exp?'wygasło':'+'+(s.pts||1)}</span><button class="iconbtn" data-act="sdel" data-id="${s.id}" aria-label="Usuń wpis">✕</button></div>`}).join('')}</div>`:'<div class="empty">Brak wpisów.</div>'}
@@ -1135,7 +1418,7 @@ function vSettings(c){
       :`<p style="margin-top:0">Jeszcze nie podłączona. Gdy repozytorium <span class="kbd">coc-sync</span> zacznie działać, dane z gry pojawią się tu same.</p>`}
     </div>
     <div class="card"><h3>Współprzywódcy i zapis</h3>
-      <p style="margin-top:0">${S.mode==='db'?'Dane zapisują się w panelu i są wspólne dla wszystkich, którym udostępnisz tę stronę. Udostępnij ją współprzywódcom przyciskiem <b>Udostępnij</b> na górze strony artefaktu – nadaj im uprawnienie do edycji, a zobaczą te same dane na żywo.':'Ten widok zapisuje dane tylko w tej przeglądarce. Otwórz panel z linku artefaktu na claude.ai, żeby dane były wspólne dla współprzywódców.'}</p>
+      <p style="margin-top:0">${FIRE?'Dane zapisują się w Twojej bazie Firebase i są wspólne dla wszystkich z listy dostępu. Żeby dodać lub usunąć osobę, zmień listę adresów e-mail w Firebase → Firestore Database → Reguły (Rules).':S.mode==='db'?'Dane zapisują się w panelu i są wspólne dla wszystkich, którym udostępnisz tę stronę. Udostępnij ją współprzywódcom przyciskiem <b>Udostępnij</b> na górze strony artefaktu – nadaj im uprawnienie do edycji, a zobaczą te same dane na żywo.':'Ten widok zapisuje dane tylko w tej przeglądarce. Otwórz panel z linku artefaktu na claude.ai, żeby dane były wspólne dla współprzywódców.'}</p>
       <p class="small muted">Gdy dwie osoby edytują ten sam klan w tej samej chwili, zostaje zapis, który przyszedł później.</p>
       <div class="row"><button class="btn" data-act="export" data-ro>Kopiuj kopię zapasową (JSON)</button><button class="btn" data-act="import">Wczytaj kopię</button></div></div>
     <div class="card"><h3>Strefa ryzyka</h3>
@@ -1148,7 +1431,7 @@ function vSettings(c){
    Modal i toast
    ========================================================= */
 let modalOnClose=null;
-function openModal(html){const r=document.getElementById('modalRoot');r.innerHTML=`<div class="modal-bg" data-act="bgclose"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`;const f=r.querySelector('input,select,textarea,button');if(f)f.focus()}
+function openModal(html,cls){const r=document.getElementById('modalRoot');r.innerHTML=`<div class="modal-bg" data-act="bgclose"><div class="modal ${cls||''}" role="dialog" aria-modal="true">${html}</div></div>`;const f=r.querySelector('input,select,textarea,button');if(f)f.focus()}
 function closeModal(){document.getElementById('modalRoot').innerHTML=''}
 function confirmModal(title,text,okLabel,fn,danger=true){
   openModal(`<h3>${title}</h3><p>${text}</p><div class="foot"><button class="btn ghost" data-act="close">Anuluj</button><button class="btn ${danger?'danger':'pri'}" data-act="confirmok">${okLabel}</button></div>`);
@@ -1167,6 +1450,9 @@ const A={
   clan(d){S.cur=d.id;UI.tplText=null;try{localStorage.setItem(LS_UI,JSON.stringify({cur:S.cur}))}catch(e){}render()},
   fresh(){confirmModal('Zacznij od własnych klanów','Przykładowe dane znikną, a panel będzie pusty i gotowy na Twoje klany. Zaczniesz od ustawień (nazwa, tag), potem dodasz członków.','Zaczynam',()=>startFresh(),false)},
   close(){closeModal()},
+  login(){fireLogin()},
+  logout(){firebase.auth().signOut().then(()=>location.reload())},
+  reload(){location.reload()},
   bgclose(d,el,e){if(e.target===el)closeModal()},
   confirmok(){const f=modalOnClose;modalOnClose=null;closeModal();if(f)f()},
   todoDel(d){const c=C();c.todos=c.todos.filter(t=>t.id!==d.id);commit()},
@@ -1175,6 +1461,8 @@ const A={
   quick(){UI.quick=!UI.quick;render()},
   madd(){memberModal(C(),null)},
   medit(d){const m=mById(C(),d.id);if(m)memberModal(C(),m)},
+  profile(d){openProfile(d.id)},
+  cwlview(d){UI.cwlView=d.v;render()},
   mmove(d){const c=C(),o=S.clans[other(S.cur)];const m=mById(c,d.id);if(!m)return;
     confirmModal('Przenieść gracza?',`<b>${esc(m.name)}</b> zostanie przeniesiony do <b>${esc(o.settings.name)}</b>. Jego ostrzeżenia zostaną w tym klanie.`,'Przenieś',()=>{
       c.members=c.members.filter(x=>x.id!==m.id);if(c.war)c.war.lineup=c.war.lineup.map(x=>x===m.id?null:x);
@@ -1218,7 +1506,7 @@ const A={
 };
 document.addEventListener('click',e=>{
   const el=e.target.closest('[data-act]');if(!el)return;
-  if(PUBLIC&&!['clan','msort','hsort','close','bgclose'].includes(el.dataset.act))return;
+  if(PUBLIC&&!['clan','msort','hsort','close','bgclose','profile','cwlview'].includes(el.dataset.act))return;
   const fn=A[el.dataset.act];if(!fn)return;
   if(el.tagName==='A'&&el.dataset.act!=='tplgo')e.preventDefault();
   if(el.tagName==='TR'&&e.target.closest('input,select,button,a'))return;
@@ -1241,6 +1529,8 @@ const CH={
   hrange(d,el){UI.hRange=Number(el.value);render()},
   cwlset(d,el){const cw=C().cwl;cw[d.f]=(d.f==='size'||d.f==='bonuses')?clampNum(el.value,0,50):el.value;commit()},
   cwlsort(d,el){UI.cwlSort=el.value;render()},
+  logscope(d,el){UI.logScope=el.value;render()},
+  logfilter(d,el){UI.logFilter=el.value;render()},
   cwlround(d,el){C().cwl.rounds[Number(d.i)][d.f]=el.value;commit()},
   cwlcell(d,el){const r=C().cwl.rounds[Number(d.i)];if(el.value)r.cells[d.id]=el.value;else delete r.cells[d.id];commit()},
   gset(d,el){C().games[d.f]=el.value;commit()},
