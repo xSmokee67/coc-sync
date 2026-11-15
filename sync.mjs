@@ -71,11 +71,12 @@ async function mapLimit(items, n, fn) {
 // API nie podaje godziny ataku. Zapamiętujemy, w którym przebiegu atak pojawił się po raz pierwszy:
 // ab = poprzedni przebieg (atak był później), at = ten przebieg (atak był wcześniej).
 function stampAttacks(state, warKey, ours) {
+  const fresh = !state.atk[warKey];                 // wojna widziana pierwszy raz: wcześniejszych ataków nie da się umiejscowić w czasie
   const seen = state.atk[warKey] || (state.atk[warKey] = {});
   for (const o of ours) {
     o.attacks.forEach((a, j) => {
       const k = normTag(o.tag) + ':' + (a.o || j);
-      if (!seen[k]) seen[k] = [state.lastSync || null, NOW_ISO];
+      if (!seen[k]) seen[k] = fresh ? [null, null] : [state.lastSync || null, NOW_ISO];
       a.ab = seen[k][0]; a.at = seen[k][1];
     });
   }
@@ -250,7 +251,7 @@ async function syncClan(id, tag, state) {
           if (w.state === 'inWar' || w.state === 'warEnded') {
             for (const [x, y] of [[w.a, w.b], [w.b, w.a]]) {
               const row = table[normTag(x.tag)]; if (!row) continue;
-              row.stars += x.st; row.dest += x.de * (g.rounds.length ? 1 : 1);
+              row.stars += x.st; row.dest += x.de;
               if (w.state === 'warEnded') {
                 row.played++;
                 if (x.st > y.st || (x.st === y.st && x.de > y.de)) { row.w++; row.stars += 10; } else if (x.st < y.st || x.de < y.de) row.l++; else row.d++;
@@ -308,18 +309,46 @@ function log(state, clan, tag, name, k, a, b) {
 // ---------- archiwum zwykłych wojen ----------
 function toHist(id, w) {
   return { id: 'api-' + w.id, clan: id, enemy: w.enemy, enemyTag: w.enemyTag, size: w.size, apm: w.apm,
-    date: (w.end || w.start || NOW_ISO).slice(0, 10), start: w.start || null,
+    date: (w.end || w.start || NOW_ISO).slice(0, 10), start: w.start || null, end: w.end || null,
     ourStars: w.ourStars, ourPct: w.ourPct, enemyStars: w.enemyStars, enemyPct: w.enemyPct, result: warResult(w),
     rows: w.ours.map(o => ({ tag: o.tag, name: o.name, th: o.th, pos: o.pos,
       a: Array.from({ length: w.apm || 1 }, (_, j) => o.attacks[j] ? { t: o.attacks[j].t, s: o.attacks[j].s, d: o.attacks[j].d, at: o.attacks[j].at || null } : { t: null, s: null, d: null }) })) };
 }
 function recordWars(id, out, state, history) {
-  const add = w => { if (w && w.ours && !history.some(h => h.id === 'api-' + w.id)) history.push(toHist(id, w)); };
+  const add = (w, partial) => { if (w && w.ours && !history.some(h => h.id === 'api-' + w.id)) { const h = toHist(id, w); if (partial) h.partial = true; history.push(h); } };
   const cw = out.war, last = state.lastWar[id];
   if (!cw) return;
   if (cw.state === 'warEnded') { add(cw); delete state.lastWar[id]; return; }
-  if (last && (!cw.ours || cw.id !== last.id)) { add(last); delete state.lastWar[id]; }
+  // koniec wojny przeoczony (klan od razu wszedł w nową) – zapis z ostatniego przebiegu, do sprawdzenia w dzienniku wojen
+  if (last && (!cw.ours || cw.id !== last.id)) { add(last, true); delete state.lastWar[id]; }
   if (cw.ours && (cw.state === 'inWar' || cw.state === 'preparation')) { const c = { ...cw }; delete c.scout; state.lastWar[id] = c; }
+}
+
+// Sprawdzenie zakończonych wojen w dzienniku wojen klanu (warlog): gra podaje tam końcowy wynik
+// i łączną liczbę użytych ataków. Jeśli zapisaliśmy mniej ataków (koniec wojny między przebiegami),
+// brakujące oznaczamy jako „nieznane” (u), a nie „nieużyte”.
+async function verifyWars(id, tag, state) {
+  const todo = state.history.filter(h => h.clan === id && !h.chk);
+  if (!todo.length) return;
+  const old = h => NOW - new Date(h.date) > 3 * 864e5;
+  let log;
+  try { log = await api(`/clans/${enc(tag)}/warlog?limit=20`); }
+  catch (e) { todo.forEach(h => { if (old(h)) h.chk = true; }); return; }
+  for (const h of todo) {
+    const hEnd = h.end || (h.start ? new Date(new Date(h.start).getTime() + 864e5).toISOString() : null);
+    const e = (log.items || []).find(x => x.opponent && normTag(x.opponent.tag) === normTag(h.enemyTag)
+      && (!hEnd || !x.endTime || Math.abs(new Date(parseT(x.endTime)) - new Date(hEnd)) < 6 * 3600e3));
+    if (!e) { if (old(h)) h.chk = true; continue; }
+    h.chk = true;
+    if (e.clan) { h.ourStars = e.clan.stars ?? h.ourStars; h.ourPct = r1(e.clan.destructionPercentage ?? h.ourPct); }
+    if (e.opponent) { h.enemyStars = e.opponent.stars ?? h.enemyStars; h.enemyPct = r1(e.opponent.destructionPercentage ?? h.enemyPct); }
+    if (e.result) h.result = e.result === 'win' ? 'W' : e.result === 'lose' ? 'L' : 'D';
+    const rec = h.rows.reduce((a, r) => a + r.a.filter(x => x.s != null).length, 0);
+    const total = e.clan && e.clan.attacks;
+    h.unknown = total != null && total > rec ? total - rec : 0;
+    if (h.unknown) h.rows.forEach(r => r.a.forEach(x => { if (x.s == null) x.u = true; }));
+    console.log(`Sprawdzono wojnę vs ${h.enemy}: ${rec}/${total ?? '?'} ataków w zapisie${h.unknown ? `, ${h.unknown} nieznanych` : ''}`);
+  }
 }
 
 // state.json czytelny dla gita (jedna pozycja w linii), żeby repozytorium nie puchło
@@ -351,6 +380,7 @@ async function main() {
   state.history = Array.isArray(state.history) ? state.history : [];
   state.log = Array.isArray(state.log) ? state.log : [];
   state.v = 2;
+  delete state.cwl;                                  // stary format pamięci CWL
   const result = { v: 2, generatedAt: NOW_ISO, prevSync: state.lastSync || null, clans: {} };
   let anyOk = false;
   if (!KEY) {
@@ -358,7 +388,7 @@ async function main() {
   } else {
     for (const [id, tag] of Object.entries(cfg.clans)) {
       if (!tag || /^#?X+$/i.test(tag)) { result.clans[id] = { ok: false, error: 'Uzupełnij tag klanu w config.json' }; continue; }
-      try { result.clans[id] = await syncClan(id, tag, state); recordWars(id, result.clans[id], state, state.history); anyOk = true; }
+      try { result.clans[id] = await syncClan(id, tag, state); recordWars(id, result.clans[id], state, state.history); await verifyWars(id, tag, state); anyOk = true; }
       catch (e) { result.clans[id] = { ok: false, tag: normTag(tag), error: e.message }; }
       const c = result.clans[id];
       console.log(id, c.ok ? `OK: ${c.members.length} graczy, wojna: ${c.war ? c.war.state : '-'}, CWL: ${c.cwl ? c.cwl.state : '-'}` : 'BŁĄD: ' + c.error);

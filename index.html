@@ -497,12 +497,14 @@ function archiveWar(c,clanId,w,demo){
     ourStars:k.stars,ourPct:Math.round(k.pct*10)/10,enemyStars:es,enemyPct:ep,result:warResult(k.stars,k.pct,es,ep),rows,demo:!!demo};
 }
 function histFor(id){return S.history.filter(h=>h.clan===id).sort((a,b)=>b.date.localeCompare(a.date))}
+function histSig(h){return JSON.stringify([h.ourStars,h.enemyStars,h.result,h.unknown||0,(h.rows||[]).map(r=>(r.a||[]).map(a=>a.s==null?(a.u?'u':'-'):a.s).join('')).join('|')])}
+const isMiss=a=>a&&a.s==null&&!a.u;
 function memberStats(c,hist){
   const map={};
   hist.forEach(w=>w.rows.forEach(r=>{
     const st=map[r.m]||(map[r.m]={id:r.m,name:r.name,th:r.th,wars:0,used:0,avail:0,missed:0,stars:0,three:0,pct:0});
     st.wars++;st.name=r.name;st.th=Math.max(st.th,r.th);
-    r.a.forEach(a=>{st.avail++;if(a.s!=null){st.used++;st.stars+=a.s;if(a.s===3)st.three++;st.pct+=a.d||0}else st.missed++});
+    r.a.forEach(a=>{if(a.u&&a.s==null){st.unknown=(st.unknown||0)+1;return}st.avail++;if(a.s!=null){st.used++;st.stars+=a.s;if(a.s===3)st.three++;st.pct+=a.d||0}else st.missed++});
   }));
   Object.values(map).forEach(s=>{const m=mById(c,s.id);if(m){s.name=m.name;s.th=m.th;s.inClan=m.status!=='left'}s.avg=s.used?s.stars/s.used:0;s.rate3=s.used?s.three/s.used:0;s.avgPct=s.used?s.pct/s.used:0});
   return map;
@@ -722,7 +724,8 @@ function applySyncClan(id,c,sc,gen){
     return {id:'api-'+w.id,api:true,state:w.state,enemy:w.enemy,enemyTag:w.enemyTag,size:w.size,apm:w.apm,type:'normal',start:w.start,end:w.end,
       lineup,enemyTH:w.enemyTH||[],enemyNote:prev?prev.enemyNote||[]:[],att,enemyStars:w.enemyStars||0,enemyPct:w.enemyPct||0};
   };
-  const archive=w=>{if(!S.history.some(h=>h.id===w.id)){const h=archiveWar(c,id,w,false);h.id=w.id;putHistory(h)}};
+  // zakończone wojny z gry archiwizuje GitHub (sc.history) – panel mógł mieć nieaktualną kopię, więc nie zapisuje ich sam
+  const archive=()=>{};
   const w=sc.war;
   if(w&&w.ours&&(w.state==='preparation'||w.state==='inWar')){
     const wid='api-'+w.id;const prev=c.war&&c.war.id===wid?c.war:null;
@@ -755,9 +758,12 @@ function applySyncClan(id,c,sc,gen){
   if(sc.cg){if(c.games.season!==sc.cg.season)c.games={season:sc.cg.season,pts:{}};
     Object.entries(sc.cg.pts||{}).forEach(([t,v])=>{const m=byTag[normTag(t)];if(m)c.games.pts[m.id]=v})}
   // archiwum wojen z GitHuba (uzupełnia historię, gdy panel nie złapał końca wojny)
-  (sc.history||[]).forEach(h=>{if(!h||!h.id||S.history.some(x=>x.id===h.id))return;
+  (sc.history||[]).forEach(h=>{if(!h||!h.id)return;
+    const loc=S.history.find(x=>x.id===h.id);
+    if(loc&&loc.edited)return;                                  // ręczna poprawka sztabu ma pierwszeństwo
     const hh=Object.assign({},h,{clan:id,rows:(h.rows||[]).map(r=>({m:ensure(r).id,name:r.name,th:r.th,pos:r.pos,a:r.a||[]}))});
-    if(PUBLIC)S.history.push(hh);else putHistory(hh)});
+    if(loc&&histSig(loc)===histSig(hh))return;
+    if(PUBLIC){S.history=S.history.filter(x=>x.id!==hh.id);S.history.push(hh)}else putHistory(hh)});
   c.syncedAt=gen;
 }
 function syncNote(id){
@@ -830,7 +836,7 @@ function vPulpit(c){
   ms.filter(m=>{const p=strikePts(c,m.id);return p>0&&p===st.strikeLimit-1}).forEach(m=>att.push(['warn',`<b>${esc(m.name)}</b> – jedno ostrzeżenie od limitu`,'ostrzezenia']));
   if(c.war){const k=warCalc(c.war);const left=c.war.lineup.filter(id=>id&&(c.war.att[id]||[]).some(a=>!a||a.s==null)).map(id=>mName(c,id));
     if(left.length)att.push(['acc',`Wojna: ${left.length} graczy z nieużytymi atakami (${esc(left.slice(0,5).join(', '))}${left.length>5?'…':''})`,'wojna'])}
-  if(hist[0]){const miss=hist[0].rows.filter(r=>r.a.some(a=>a.s==null));if(miss.length)att.push(['warn',`Ostatnia wojna (${esc(hist[0].enemy)}): nieużyte ataki – ${esc(miss.map(r=>r.name).join(', '))}`,'historia'])}
+  if(hist[0]){const miss=hist[0].rows.filter(r=>r.a.some(isMiss));if(miss.length)att.push(['warn',`Ostatnia wojna (${esc(hist[0].enemy)}): nieużyte ataki – ${esc(miss.map(r=>r.name).join(', '))}`,'historia'])}
   const inact=ms.filter(m=>{const d=daysAgo(m.lastSeen)??daysAgo(m.quietSince);return d!=null&&d>=st.inactiveDays});
   if(inact.length)att.push(['warn',`Nieaktywni od ${st.inactiveDays}+ dni: ${esc(inact.map(m=>m.name).join(', '))}`,'czlonkowie']);
   const lowDon=ms.filter(m=>(m.don||0)<st.minDon&&m.role!=='leader');
@@ -1030,7 +1036,7 @@ function vHistory(c){
     </tbody></table></div>`:'<div class="card empty">Statystyki pojawią się po zakończeniu pierwszej wojny.</div>'}</div>
     <div><h3 style="margin-bottom:10px">Wojny</h3>
     ${all.length?`<div class="tablewrap"><table><thead><tr><th>Data</th><th>Przeciwnik</th><th class="c">Wynik</th><th class="n">★</th><th class="n">%</th><th class="c">Nieuż.</th><th></th></tr></thead><tbody>
-      ${all.map(h=>{const miss=h.rows.reduce((a,r)=>a+r.a.filter(x=>x.s==null).length,0);return `<tr><td>${fmtDate(h.date)}</td><td><span class="name">${esc(h.enemy)}</span><span class="tag">${h.size}v${h.size}</span></td><td class="c"><span class="pill ${h.result==='W'?'ok':h.result==='L'?'bad':'neu'}">${h.result==='W'?'Wygrana':h.result==='L'?'Przegrana':'Remis'}</span></td><td class="n">${h.ourStars}:${h.enemyStars}</td><td class="n">${String(h.ourPct).replace('.',',')}</td><td class="c">${miss||'<span class="muted">0</span>'}</td><td><button class="iconbtn" data-act="hdel" data-id="${h.id}" aria-label="Usuń wojnę">✕</button></td></tr>`}).join('')}
+      ${all.map(h=>{const miss=h.rows.reduce((a,r)=>a+r.a.filter(isMiss).length,0),unk=h.rows.reduce((a,r)=>a+r.a.filter(x=>x.u&&x.s==null).length,0);return `<tr><td>${fmtDate(h.date)}</td><td><span class="name">${esc(h.enemy)}</span><span class="tag">${h.size}v${h.size}</span></td><td class="c"><span class="pill ${h.result==='W'?'ok':h.result==='L'?'bad':'neu'}">${h.result==='W'?'Wygrana':h.result==='L'?'Przegrana':'Remis'}</span></td><td class="n">${h.ourStars}:${h.enemyStars}</td><td class="n">${String(h.ourPct).replace('.',',')}</td><td class="c">${miss||'<span class="muted">0</span>'}${unk?` <span class="pill warn" title="Wojna skończyła się między synchronizacjami – gra potwierdza ${h.unknown||unk} ataków więcej, ale nie mówi czyich. Popraw ręcznie.">?${unk}</span>`:''}${h.edited?' <span class="pill neu" title="Poprawione ręcznie">✎</span>':''}</td><td style="white-space:nowrap"><button class="btn sm ghost" data-act="hedit" data-id="${h.id}">Popraw</button><button class="iconbtn" data-act="hdel" data-id="${h.id}" aria-label="Usuń wojnę">✕</button></td></tr>`}).join('')}
     </tbody></table></div>`:'<div class="card empty">Brak zakończonych wojen.</div>'}</div>
   </div>`;
 }
@@ -1147,8 +1153,10 @@ function spark(points,w=280,h=56,color='var(--accent)'){
 function playerAttacks(c,m){
   const tag=normTag(m.tag||'');const out=[];
   const wars=(S.arch&&Array.isArray(S.arch.history)?S.arch.history.filter(h=>h.clan===S.cur):[]);
-  if(wars.length)wars.forEach(h=>{const r=h.rows.find(x=>normTag(x.tag)===tag);if(!r)return;r.a.forEach((a,j)=>out.push({date:h.date,kind:'Wojna',enemy:h.enemy,t:a.t,s:a.s,d:a.d,w:atkWindow(a,h.start),miss:a.s==null}))});
-  else histFor(S.cur).forEach(h=>{const r=h.rows.find(x=>x.m===m.id);if(!r)return;r.a.forEach(a=>out.push({date:h.date,kind:'Wojna',enemy:h.enemy,t:a.t,s:a.s,d:a.d,miss:a.s==null}))});
+  // ręcznie poprawione wojny z panelu mają pierwszeństwo przed archiwum z GitHuba
+  const edited={};histFor(S.cur).forEach(h=>{if(h.edited)edited[h.id]=h});
+  if(wars.length)wars.forEach(h0=>{const h=edited[h0.id]?Object.assign({},edited[h0.id],{rows:edited[h0.id].rows.map(r=>Object.assign({tag:(mById(c,r.m)||{}).tag},r))}):h0;const r=h.rows.find(x=>normTag(x.tag)===tag);if(!r)return;r.a.forEach((a,j)=>out.push({date:h.date,kind:'Wojna',enemy:h.enemy,t:a.t,s:a.s,d:a.d,w:atkWindow(a,h.start),miss:isMiss(a),unk:a.s==null&&!!a.u}))});
+  else histFor(S.cur).forEach(h=>{const r=h.rows.find(x=>x.m===m.id);if(!r)return;r.a.forEach(a=>out.push({date:h.date,kind:'Wojna',enemy:h.enemy,t:a.t,s:a.s,d:a.d,miss:isMiss(a),unk:a.s==null&&!!a.u}))});
   const seasons=(S.arch&&S.arch.cwlSeasons&&S.arch.cwlSeasons[S.cur])||{};
   const cur=SC()&&SC().cwl;
   if(cur)seasons[cur.season]={rounds:cur.rounds};
@@ -1174,9 +1182,9 @@ const LOG_CLS={join:'ok',rejoin:'acc',leave:'bad',promo:'ok',demo:'warn',th:'acc
 function openProfile(id){
   const c=C();const m=mById(c,id);if(!m)return;
   const tag=normTag(m.tag||'');const snaps=(S.arch&&S.arch.snap&&S.arch.snap[tag])||[];
-  const atks=playerAttacks(c,m);const done=atks.filter(a=>!a.miss);
+  const atks=playerAttacks(c,m);const done=atks.filter(a=>!a.miss&&!a.unk);
   const wAt=atks.filter(a=>a.kind==='Wojna'),cAt=atks.filter(a=>a.kind!=='Wojna');
-  const avg=l=>{const d=l.filter(a=>!a.miss);return d.length?(d.reduce((x,a)=>x+a.s,0)/d.length):0};
+  const avg=l=>{const d=l.filter(a=>!a.miss&&!a.unk);return d.length?(d.reduce((x,a)=>x+a.s,0)/d.length):0};
   const three=done.filter(a=>a.s===3).length;
   const logs=(S.arch&&S.arch.log||[]).filter(e=>normTag(e.tag)===tag).slice().reverse();
   const firstLog=logs.slice().reverse().find(e=>e.k==='join'||e.k==='rejoin');
@@ -1195,7 +1203,7 @@ function openProfile(id){
   openModal(`<div class="prof">
     <div class="profhead"><div><h3 style="margin:0">${esc(m.name)}</h3><div class="small muted">${esc(m.tag||'')} · ${ROLES[m.role]} · ${esc(c.settings.name)}${m.status==='left'?' · <span class="pill neu">poza klanem</span>':''}</div></div>${thBadge(m.th)}</div>
     <div class="tiles ptiles">
-      <div class="tile"><div class="k">Wojny</div><div class="v">${wAt.some(a=>!a.miss)?avg(wAt).toFixed(2).replace('.',',')+'<small> ★/atak</small>':'–'}</div><div class="s">${wAt.filter(a=>!a.miss).length} ataków · ${wAt.filter(a=>a.miss).length} nieużytych</div></div>
+      <div class="tile"><div class="k">Wojny</div><div class="v">${wAt.some(a=>!a.miss)?avg(wAt).toFixed(2).replace('.',',')+'<small> ★/atak</small>':'–'}</div><div class="s">${wAt.filter(a=>!a.miss&&!a.unk).length} ataków · ${wAt.filter(a=>a.miss).length} nieużytych${wAt.some(a=>a.unk)?' · '+wAt.filter(a=>a.unk).length+' nieznanych':''}</div></div>
       <div class="tile"><div class="k">CWL</div><div class="v">${cAt.some(a=>!a.miss)?avg(cAt).toFixed(2).replace('.',',')+'<small> ★/atak</small>':'–'}</div><div class="s">${cAt.filter(a=>!a.miss).length} ataków · ${cAt.filter(a=>a.miss).length} nieużytych</div></div>
       <div class="tile"><div class="k">3★ ogółem</div><div class="v">${done.length?Math.round(three/done.length*100):0}<small>%</small></div><div class="s">${three} z ${done.length} ataków</div></div>
       <div class="tile"><div class="k">Donacje (sezon)</div><div class="v">${(m.don||0).toLocaleString('pl-PL')}</div><div class="s">otrzymał ${(m.rec||0).toLocaleString('pl-PL')}</div></div>
@@ -1210,7 +1218,7 @@ function openProfile(id){
     </div>
     <div class="card" style="margin-top:12px"><h3>Ataki<span class="sub">${atks.length} zapisanych</span></h3>
       ${atks.length?`<div class="tablewrap" style="max-height:280px;overflow:auto"><table><thead><tr><th>Data</th><th>Gdzie</th><th>Przeciwnik</th><th class="c">Cel</th><th class="c">Wynik</th><th class="n">%</th><th>Czas po starcie</th></tr></thead><tbody>
-      ${atks.slice(0,40).map(a=>`<tr><td>${fmtDate(a.date)}</td><td>${a.kind}</td><td>${esc(a.enemy||'')}</td><td class="c">${a.t?'#'+a.t:'–'}</td><td class="c">${a.miss?'<span class="pill bad">nieużyty</span>':starsHTML(a.s)}</td><td class="n">${a.d!=null?Math.round(a.d):'–'}</td><td>${a.w?`<span class="tm ${timeClass(a.w)}" title="${esc(a.w.title)}">${a.w.label}</span>`:'<span class="muted">–</span>'}</td></tr>`).join('')}
+      ${atks.slice(0,40).map(a=>`<tr><td>${fmtDate(a.date)}</td><td>${a.kind}</td><td>${esc(a.enemy||'')}</td><td class="c">${a.t?'#'+a.t:'–'}</td><td class="c">${a.miss?'<span class="pill bad">nieużyty</span>':a.unk?'<span class="pill warn" title="Wojna skończyła się między synchronizacjami">nieznany</span>':starsHTML(a.s)}</td><td class="n">${a.d!=null?Math.round(a.d):'–'}</td><td>${a.w?`<span class="tm ${timeClass(a.w)}" title="${esc(a.w.title)}">${a.w.label}</span>`:'<span class="muted">–</span>'}</td></tr>`).join('')}
       </tbody></table></div>`:'<div class="muted small">Brak zapisanych ataków.</div>'}</div>
     ${logs.length?`<div class="card" style="margin-top:12px"><h3>Dziennik gracza</h3><div class="list">${logs.slice(0,15).map(e=>`<div><span class="small muted" style="width:90px">${fmtDate(e.t)}</span><span class="pill ${LOG_CLS[e.k]||'neu'}">${LOG_TXT[e.k]||e.k}</span><span>${logLine(e)}</span></div>`).join('')}</div></div>`:''}
     ${priv?`<div class="card" style="margin-top:12px"><h3>Ostrzeżenia i notatki</h3>
@@ -1480,6 +1488,14 @@ const A={
       <p class="small muted" style="margin:0">Sprawdź, czy gwiazdki wroga są wpisane. Wojna trafi do historii i statystyk graczy.</p>
       ${miss.length?`<div><b>Nieużyte ataki:</b><div class="chk-grid" style="margin-top:6px">${miss.map(x=>`<label class="check"><input type="checkbox" name="strike_${x.id}" checked> ${esc(mName(c,x.id))} (${x.n})</label>`).join('')}</div><p class="small muted">Zaznaczonym dodam ostrzeżenie „Nieużyty atak w wojnie”.</p></div>`:'<p class="pill ok" style="align-self:flex-start">Wszystkie ataki wykonane</p>'}
       <div class="foot"><button type="button" class="btn ghost" data-act="close">Anuluj</button><button class="btn pri" type="submit">Zapisz w historii</button></div></form>`)},
+  hedit(d){const h=S.history.find(x=>x.id===d.id);if(!h)return;const c=C();
+    const opt=(a)=>{const v=a.s!=null?String(a.s):a.u?'u':'';return [['','nieużyty'],['u','nieznany'],['0','0★'],['1','1★'],['2','2★'],['3','3★']].map(([k,l])=>`<option value="${k}" ${v===k?'selected':''}>${l}</option>`).join('')};
+    openModal(`<h3>Popraw wojnę vs ${esc(h.enemy)}</h3><form class="stack" data-form="hedit" data-id="${h.id}">
+      <p class="small muted" style="margin:0">${fmtDate(h.date)} · ${h.ourStars}:${h.enemyStars}${h.unknown?` · gra potwierdza ${h.unknown} ataków więcej, niż zdążyliśmy zapisać`:''}. Zmień wynik ataków, które się nie zgadzają. Poprawka zostaje na stałe i nie nadpisze jej synchronizacja.</p>
+      <div class="tablewrap" style="max-height:52vh;overflow:auto"><table><thead><tr><th>#</th><th>Gracz</th>${(h.rows[0]&&h.rows[0].a||[]).map((_,j)=>`<th>Atak ${j+1}</th><th class="n">%</th>`).join('')}</tr></thead><tbody>
+      ${h.rows.map((r,i)=>`<tr><td class="n">${r.pos||i+1}</td><td>${esc(mName(c,r.m)||r.name)}</td>${r.a.map((a,j)=>`<td><select name="s_${i}_${j}">${opt(a)}</select></td><td class="n"><input type="number" name="d_${i}_${j}" min="0" max="100" value="${a.d??''}" style="width:64px"></td>`).join('')}</tr>`).join('')}
+      </tbody></table></div>
+      <div class="foot"><button type="button" class="btn ghost" data-act="close">Anuluj</button><button class="btn pri" type="submit">Zapisz poprawkę</button></div></form>`,'wide')},
   hdel(d){confirmModal('Usunąć wojnę z historii?','Statystyki graczy przeliczą się bez niej.','Usuń',()=>{delHistory(d.id);render()})},
   cwlpool(){const c=C();const sel=new Set(c.cwl.pool);
     openModal(`<h3>Pula graczy na CWL</h3><form class="stack" data-form="cwlpool"><p class="small muted" style="margin:0">Zaznacz wszystkich, którzy mogą zagrać w tym sezonie (więcej niż ${c.cwl.size}, żeby rotować skład).</p>
@@ -1575,6 +1591,11 @@ document.addEventListener('submit',e=>{
     const w=c.war;const h=archiveWar(c,S.cur,w,false);
     w.lineup.filter(Boolean).forEach(id=>{if(fd.get('strike_'+id))c.strikes.push({id:uid(),member:id,reason:'Nieużyty atak w wojnie',pts:1,date:todayISO(),note:'vs '+w.enemy})});
     c.war=null;closeModal();putHistory(h);commit();toast('Wojna zapisana w historii');return}
+  if(k==='hedit'){const h=S.history.find(x=>x.id===f.dataset.id);if(!h)return;const nh=clone(h);
+    nh.rows.forEach((r,i)=>r.a.forEach((a,j)=>{const v=g('s_'+i+'_'+j),dv=g('d_'+i+'_'+j);
+      if(v===''){a.s=null;a.u=false}else if(v==='u'){a.s=null;a.u=true}else{a.s=Number(v);a.u=false;a.d=dv===''?(a.s===3?100:a.d):clampNum(dv,0,100)}}));
+    nh.unknown=nh.rows.reduce((x,r)=>x+r.a.filter(a=>a.u&&a.s==null).length,0);nh.edited=true;
+    closeModal();putHistory(nh);render();toast('Zapisano poprawkę');return}
   if(k==='strike'){
     if(!g('member')){toast('Wybierz gracza');return}
     c.strikes.push({id:uid(),member:g('member'),reason:g('reason'),pts:clampNum(g('pts'),1,5),date:g('date')||todayISO(),note:g('note')});commit();toast('Dodano ostrzeżenie');return}
