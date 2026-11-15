@@ -277,7 +277,8 @@ async function syncClan(id, tag, state) {
       out.cwl = { season, state: g.state, size: (rounds.find(x => x) || {}).size || null, rounds, table: tbl };
       // archiwum sezonu (do profili graczy)
       const arch = state.cwlSeasons[id] || (state.cwlSeasons[id] = {});
-      arch[season] = { size: out.cwl.size, rounds: rounds.map(r => r && { enemy: r.enemy, result: r.result, start: r.start, lineup: r.lineup.map(x => ({ tag: x.tag, s: x.s, d: x.d, t: x.t, at: x.at })) }) };
+      arch[season] = { size: out.cwl.size, rounds: rounds.map(r => r && { enemy: r.enemy, result: r.result, state: r.state, start: r.start, enemyTH: r.enemyTH,
+        lineup: r.lineup.map(x => ({ tag: x.tag, th: x.th, pos: x.pos, s: x.s, d: x.d, t: x.t, at: x.at })) }) };
       const seasons = Object.keys(arch).sort();
       while (seasons.length > KEEP_CWL_SEASONS) delete arch[seasons.shift()];
     }
@@ -309,7 +310,7 @@ function log(state, clan, tag, name, k, a, b) {
 // ---------- archiwum zwykłych wojen ----------
 function toHist(id, w) {
   return { id: 'api-' + w.id, clan: id, enemy: w.enemy, enemyTag: w.enemyTag, size: w.size, apm: w.apm,
-    date: (w.end || w.start || NOW_ISO).slice(0, 10), start: w.start || null, end: w.end || null,
+    date: (w.end || w.start || NOW_ISO).slice(0, 10), start: w.start || null, end: w.end || null, enemyTH: w.enemyTH || [],
     ourStars: w.ourStars, ourPct: w.ourPct, enemyStars: w.enemyStars, enemyPct: w.enemyPct, result: warResult(w),
     rows: w.ours.map(o => ({ tag: o.tag, name: o.name, th: o.th, pos: o.pos,
       a: Array.from({ length: w.apm || 1 }, (_, j) => o.attacks[j] ? { t: o.attacks[j].t, s: o.attacks[j].s, d: o.attacks[j].d, at: o.attacks[j].at || null } : { t: null, s: null, d: null }) })) };

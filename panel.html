@@ -261,6 +261,10 @@ tr.mine td{background:var(--accent-soft) !important}
 .thn b{color:var(--ink)}
 .logday{margin-bottom:12px}
 .logday h3{font-size:16px;text-transform:capitalize}
+.qgood{color:var(--ok)}.qbad{color:var(--bad)}
+.qual th.grp,.qual td.grp{border-left:1px solid var(--line)}
+.qgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.qgrid > div{display:flex;flex-direction:column;gap:2px}
 /* ---------- modal & toast ---------- */
 .modal-bg{position:fixed;inset:0;background:rgba(5,8,14,.72);display:flex;align-items:flex-start;justify-content:center;padding:6vh 14px;z-index:100;overflow:auto}
 .modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;width:min(620px,100%);padding:20px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
@@ -354,7 +358,7 @@ const NAV=[
    Stan
    ========================================================= */
 const S={clans:{main:null,academy:null},history:[],cur:'main',view:'pulpit',mode:'loading',demo:false,readOnly:false,db:null,ready:false,sync:null,syncErr:null,gate:null,gateMsg:'',user:null,arch:null};
-const UI={cwlView:'res',logFilter:'all',logScope:'cur',cwlSort:'th',mSearch:'',mFilter:'active',mSort:'role',mDir:1,quick:false,hRange:10,hSort:'stars',tpl:'warstart',tplOpt:1,tplText:null,newTodo:''};
+const UI={hView:'res',qSrc:'all',cwlView:'res',logFilter:'all',logScope:'cur',cwlSort:'th',mSearch:'',mFilter:'active',mSort:'role',mDir:1,quick:false,hRange:10,hSort:'stars',tpl:'warstart',tplOpt:1,tplText:null,newTodo:''};
 const dirty={},saving={},again={},timers={};
 const LS_KEY='coc-panel-v1', LS_HIST='coc-panel-hist-v1', LS_UI='coc-panel-ui';
 
@@ -501,7 +505,7 @@ function archiveWar(c,clanId,w,demo){
   const rows=w.lineup.map((id,i)=>{if(!id)return null;const m=mById(c,id);return {m:id,name:m?m.name:'?',th:m?m.th:0,pos:i+1,a:(w.att[id]||[{},{}]).map(a=>({t:a&&a.t||null,s:a&&a.s!=null?a.s:null,d:a&&a.d!=null?a.d:null}))}}).filter(Boolean);
   const es=Number(w.enemyStars)||0,ep=Number(w.enemyPct)||0;
   return {id:w.id||uid(),clan:clanId,enemy:w.enemy||'Przeciwnik',enemyTag:w.enemyTag||'',size:w.size,date:(w.end||new Date().toISOString()).slice(0,10),
-    ourStars:k.stars,ourPct:Math.round(k.pct*10)/10,enemyStars:es,enemyPct:ep,result:warResult(k.stars,k.pct,es,ep),rows,demo:!!demo};
+    ourStars:k.stars,ourPct:Math.round(k.pct*10)/10,enemyStars:es,enemyPct:ep,result:warResult(k.stars,k.pct,es,ep),rows,enemyTH:(w.enemyTH||[]).slice(),demo:!!demo};
 }
 function histFor(id){return S.history.filter(h=>h.clan===id).sort((a,b)=>b.date.localeCompare(a.date))}
 function histSig(h){return JSON.stringify([h.ourStars,h.enemyStars,h.result,h.unknown||0,(h.rows||[]).map(r=>(r.a||[]).map(a=>a.s==null?(a.u?'u':'-'):a.s).join('')).join('|')])}
@@ -1032,9 +1036,12 @@ function vHistory(c){
   const sh=(k,l,cls='n')=>`<th class="sortable ${cls}" data-act="hsort" data-k="${k}">${l}${UI.hSort===k?' ▾':''}</th>`;
   const cand=S.cur==='academy'?promoCandidates(c):[];
   const W=hist.filter(h=>h.result==='W').length,L=hist.filter(h=>h.result==='L').length;
-  return `
+  const head=`
   <div class="pagehead"><div><h2>Historia i statystyki</h2><p>${all.length} zapisanych wojen · bilans w wybranym okresie: ${W} wygranych, ${L} przegranych.</p></div>
-    <div class="actions"><select id="h-range" data-ch="hrange" data-ro-ok>${[[5,'Ostatnie 5 wojen'],[10,'Ostatnie 10 wojen'],[20,'Ostatnie 20 wojen'],[0,'Wszystkie']].map(([v,l])=>`<option value="${v}" ${UI.hRange===v?'selected':''}>${l}</option>`).join('')}</select></div></div>
+    <div class="actions"><div class="seg" role="group" aria-label="Widok">${[['res','Wyniki'],['qual','Jakość ataków']].map(([k,l])=>`<button type="button" data-act="hview" data-v="${k}" data-ro aria-pressed="${UI.hView===k}">${l}</button>`).join('')}</div><select id="h-range" data-ch="hrange" data-ro-ok>${[[5,'Ostatnie 5 wojen'],[10,'Ostatnie 10 wojen'],[20,'Ostatnie 20 wojen'],[0,'Wszystkie']].map(([v,l])=>`<option value="${v}" ${UI.hRange===v?'selected':''}>${l}</option>`).join('')}</select></div></div>
+`;
+  if(UI.hView==='qual')return head+qualityView(c,hist);
+  return head+`
   ${cand.length?`<div class="card" style="margin-bottom:14px"><h3>Kandydaci do awansu do ${esc(S.clans.main.settings.name)}</h3><p class="small muted" style="margin:0 0 8px">Min. 3 wojny w ostatnich 6, zero nieużytych ataków, średnio 2,3★ lub więcej.</p><div class="row">${cand.map(s=>`<span class="pill acc">${esc(s.name)} · TH${s.th} · ${s.avg.toFixed(2).replace('.',',')}★</span>`).join('')}</div></div>`:''}
   <div class="grid" style="align-items:start">
     <div><h3 style="margin-bottom:10px">Wyniki graczy</h3>
@@ -1227,6 +1234,7 @@ function openProfile(id){
       ${atks.length?`<div class="tablewrap" style="max-height:280px;overflow:auto"><table><thead><tr><th>Data</th><th>Gdzie</th><th>Przeciwnik</th><th class="c">Cel</th><th class="c">Wynik</th><th class="n">%</th><th>Czas po starcie</th></tr></thead><tbody>
       ${atks.slice(0,40).map(a=>`<tr><td>${fmtDate(a.date)}</td><td>${a.kind}</td><td>${esc(a.enemy||'')}</td><td class="c">${a.t?'#'+a.t:'–'}</td><td class="c">${a.miss?'<span class="pill bad">nieużyty</span>':a.unk?'<span class="pill warn" title="Wojna skończyła się między synchronizacjami">nieznany</span>':starsHTML(a.s)}</td><td class="n">${a.d!=null?Math.round(a.d):'–'}</td><td>${a.w?`<span class="tm ${timeClass(a.w)}" title="${esc(a.w.title)}">${a.w.label}</span>`:'<span class="muted">–</span>'}</td></tr>`).join('')}
       </tbody></table></div>`:'<div class="muted small">Brak zapisanych ataków.</div>'}</div>
+    ${qualityCard(c,m)}
     ${logs.length?`<div class="card" style="margin-top:12px"><h3>Dziennik gracza</h3><div class="list">${logs.slice(0,15).map(e=>`<div><span class="small muted" style="width:90px">${fmtDate(e.t)}</span><span class="pill ${LOG_CLS[e.k]||'neu'}">${LOG_TXT[e.k]||e.k}</span><span>${logLine(e)}</span></div>`).join('')}</div></div>`:''}
     ${priv?`<div class="card" style="margin-top:12px"><h3>Ostrzeżenia i notatki</h3>
       ${strikesAll.length?`<div class="list">${strikesAll.map(s=>`<div><span class="small muted" style="width:70px">${fmtDate(s.date)}</span><span style="flex:1">${esc(s.reason)}${s.note?' – '+esc(s.note):''}</span><span class="small">+${s.pts||1}</span></div>`).join('')}</div>`:'<div class="small muted">Brak ostrzeżeń.</div>'}
@@ -1301,6 +1309,64 @@ function cwlTableCard(c){
     <div class="tablewrap"><table><thead><tr><th class="n">#</th><th>Klan</th><th class="n">★</th><th class="n">% zniszcz.</th><th class="c">W–L</th><th>Najwyższe ratusze w składzie</th><th class="n">Śr. TH</th></tr></thead><tbody>
     ${t.map((x,i)=>`<tr class="${normTag(x.tag)===me?'mine':''}"><td class="n"><b>${i+1}</b></td><td><span class="name">${esc(x.name)}</span><span class="tag">poz. ${x.level||'?'}</span></td><td class="n"><b>${x.stars}</b></td><td class="n">${x.dest}</td><td class="c">${x.w}–${x.l}${x.d?'–'+x.d:''}</td><td class="small">${dist(x.th)}</td><td class="n">${avgTh(x.th)}</td></tr>`).join('')}
     </tbody></table></div></div>`;
+}
+
+
+/* ---------- Jakość ataków ---------- */
+function qualRecords(c,src,hist){
+  const out=[];
+  if(src!=='cwl')hist.forEach(h=>(h.rows||[]).forEach(r=>{const m=r.m?mById(c,r.m):memberByTag(c,r.tag||'');
+    (r.a||[]).forEach(a=>{if(a.s==null||!a.t)return;out.push({id:m?m.id:'t:'+(r.tag||r.name),name:m?m.name:r.name,th:r.th||(m&&m.th),pos:r.pos,t:a.t,tth:(h.enemyTH||[])[a.t-1]||null,s:a.s,kind:'war'})})}));
+  if(src!=='war'){
+    const seasons=Object.assign({},(S.arch&&S.arch.cwlSeasons&&S.arch.cwlSeasons[S.cur])||{});const cur=SC()&&SC().cwl;if(cur)seasons[cur.season]={rounds:cur.rounds};
+    Object.values(seasons).forEach(sv=>(sv.rounds||[]).forEach(r=>{if(!r)return;(r.lineup||[]).forEach(x=>{if(x.s==null||!x.t)return;const m=memberByTag(c,x.tag);
+      out.push({id:m?m.id:'t:'+x.tag,name:m?m.name:(x.name||x.tag),th:x.th||(m&&m.th),pos:x.pos,t:x.t,tth:(r.enemyTH||[])[x.t-1]||null,s:x.s,kind:'cwl'})})}));
+  }
+  return out.filter(x=>x.pos||x.tth);   // starsze zapisy CWL nie mają pozycji ani ratuszy – pomijamy
+}
+function qualAgg(recs){
+  const cat=()=>({n:0,s:0,three:0});const map={};
+  recs.forEach(x=>{const p=map[x.id]||(map[x.id]={id:x.id,name:x.name,th:x.th||0,n:0,mirror:cat(),up:cat(),down:cat(),thUp:cat(),thEq:cat(),thDown:cat(),weakDown:0});
+    p.n++;p.th=Math.max(p.th||0,x.th||0);
+    const add=k=>{p[k].n++;p[k].s+=x.s;if(x.s===3)p[k].three++};
+    if(x.pos)add(x.t===x.pos?'mirror':x.t<x.pos?'up':'down');
+    if(x.th&&x.tth){add(x.tth>x.th?'thUp':x.tth===x.th?'thEq':'thDown');if(x.tth<x.th&&x.s<3)p.weakDown++}});
+  return Object.values(map);
+}
+function qc(k,good){if(!k.n)return '<span class="muted">–</span>';const a=k.s/k.n,r3=Math.round(k.three/k.n*100);
+  const cls=good!=null?(a>=good?'qgood':a>=good-0.6?'':'qbad'):'';
+  return `<span class="${cls}" title="${k.n} ataków · 3★: ${r3}%"><b>${a.toFixed(1).replace('.',',')}★</b> <span class="muted small">×${k.n}</span></span>`}
+function qualityView(c,hist){
+  const recs=qualRecords(c,UI.qSrc,hist);const rows=qualAgg(recs).sort((a,b)=>(b.th-a.th)||b.n-a.n);
+  const sum=k=>rows.reduce((x,p)=>({n:x.n+p[k].n,s:x.s+p[k].s,three:x.three+p[k].three}),{n:0,s:0,three:0});
+  const posN=recs.filter(x=>x.pos).length,thN=recs.filter(x=>x.th&&x.tth).length;
+  const mir=sum('mirror'),up=sum('thUp'),eq=sum('thEq');const weak=rows.reduce((a,p)=>a+p.weakDown,0);
+  const pct=(a,b)=>b?Math.round(a/b*100)+'%':'–';
+  return `
+  <div class="row" style="margin-bottom:12px;align-items:center" data-ro-ok><label class="small muted" for="q-src">Ataki z:</label>
+    <select id="q-src" data-ch="qsrc" data-ro-ok>${[['all','wojen i CWL'],['war','tylko wojen (wybrany okres)'],['cwl','tylko CWL (zapisane sezony)']].map(([k,l])=>`<option value="${k}" ${UI.qSrc===k?'selected':''}>${l}</option>`).join('')}</select>
+    <span class="small muted">${recs.length} ataków w analizie</span></div>
+  <div class="tiles">
+    <div class="tile"><div class="k">Ataki na lustro</div><div class="v">${pct(mir.n,posN)}</div><div class="s">śr. ${mir.n?(mir.s/mir.n).toFixed(2).replace('.',','):'–'}★ na lustrze</div></div>
+    <div class="tile"><div class="k">Na wyższy ratusz</div><div class="v">${up.n?(up.s/up.n).toFixed(2).replace('.',','):'–'}<small>★</small></div><div class="s">${up.n} ataków · 3★: ${pct(up.three,up.n)}</div></div>
+    <div class="tile"><div class="k">Na ten sam ratusz</div><div class="v">${pct(eq.three,eq.n)}<small> 3★</small></div><div class="s">${eq.n} ataków · śr. ${eq.n?(eq.s/eq.n).toFixed(2).replace('.',','):'–'}★</div></div>
+    <div class="tile ${weak?'hot':''}"><div class="k">Słabe ataki w dół</div><div class="v" style="color:${weak?'var(--warn)':'inherit'}">${weak}</div><div class="s">niższy ratusz, a mniej niż 3★</div></div>
+  </div>
+  ${rows.length?`<div class="tablewrap"><table class="qual"><thead><tr><th>Gracz</th><th>TH</th><th class="n">Ataki</th><th class="c grp">Lustro</th><th class="c">Wyżej na mapie</th><th class="c">Niżej na mapie</th><th class="c grp">Wyższy TH</th><th class="c">Ten sam TH</th><th class="c">Niższy TH</th><th class="c">Słabe w dół</th></tr></thead><tbody>
+    ${rows.map(p=>{const m=mById(c,p.id);return `<tr><td>${m?`<a href="#" class="name plink" data-act="profile" data-id="${m.id}">${esc(p.name)}</a>`:`<span class="name">${esc(p.name)}</span> <span class="pill neu">poza klanem</span>`}</td><td>${p.th?thBadge(p.th):''}</td><td class="n">${p.n}</td>
+      <td class="c grp">${qc(p.mirror,2.5)}</td><td class="c">${qc(p.up,2)}</td><td class="c">${qc(p.down,2.8)}</td><td class="c grp">${qc(p.thUp,1.8)}</td><td class="c">${qc(p.thEq,2.5)}</td><td class="c">${qc(p.thDown,2.9)}</td>
+      <td class="c">${p.weakDown?`<span class="pill warn" title="Ataki na niższy ratusz bez 3★">${p.weakDown}</span>`:'<span class="muted">0</span>'}</td></tr>`}).join('')}
+  </tbody></table></div>`:'<div class="card empty">Brak ataków do analizy w wybranym zakresie.</div>'}
+  <p class="small muted" style="margin-top:10px">W każdej kratce: średnia gwiazdek i liczba ataków (najedź, żeby zobaczyć % 3★). Zielony – dobrze jak na ten rodzaj ataku, czerwony – wyraźnie słabo. „Wyżej na mapie” to baza z mniejszym numerem, czyli zwykle silniejsza.
+  ${thN<recs.length?` Porównanie ratuszy obejmuje ${thN} z ${recs.length} ataków – ratusze baz przeciwnika zapisujemy od tej wersji, starsze wojny liczą się tylko do kolumn mapy.`:''}</p>`;
+}
+function qualityCard(c,m){
+  const recs=qualRecords(c,'all',histFor(S.cur)).filter(x=>x.id===m.id);if(!recs.length)return '';
+  const p=qualAgg(recs)[0];
+  const rows=[['Lustro',p.mirror,2.5],['Wyżej na mapie',p.up,2],['Niżej na mapie',p.down,2.8],['Wyższy TH',p.thUp,1.8],['Ten sam TH',p.thEq,2.5],['Niższy TH',p.thDown,2.9]].filter(r=>r[1].n);
+  return `<div class="card" style="margin-top:12px"><h3>Jakość ataków<span class="sub">wojny i CWL</span></h3>
+    <div class="qgrid">${rows.map(([l,k,g])=>`<div><span class="small muted">${l}</span>${qc(k,g)}<span class="small muted">3★ ${Math.round(k.three/k.n*100)}%</span></div>`).join('')}</div>
+    ${p.weakDown?`<p class="small" style="margin:8px 0 0"><span class="pill warn">${p.weakDown}</span> ataków na niższy ratusz bez 3★</p>`:''}</div>`;
 }
 
 /* ---------- Ostrzeżenia ---------- */
@@ -1478,6 +1544,7 @@ const A={
   medit(d){const m=mById(C(),d.id);if(m)memberModal(C(),m)},
   profile(d){openProfile(d.id)},
   cwlview(d){UI.cwlView=d.v;render()},
+  hview(d){UI.hView=d.v;render()},
   mmove(d){const c=C(),o=S.clans[other(S.cur)];const m=mById(c,d.id);if(!m)return;
     confirmModal('Przenieść gracza?',`<b>${esc(m.name)}</b> zostanie przeniesiony do <b>${esc(o.settings.name)}</b>. Jego ostrzeżenia zostaną w tym klanie.`,'Przenieś',()=>{
       c.members=c.members.filter(x=>x.id!==m.id);if(c.war)c.war.lineup=c.war.lineup.map(x=>x===m.id?null:x);
@@ -1529,7 +1596,7 @@ const A={
 };
 document.addEventListener('click',e=>{
   const el=e.target.closest('[data-act]');if(!el)return;
-  if(PUBLIC&&!['clan','msort','hsort','close','bgclose','profile','cwlview'].includes(el.dataset.act))return;
+  if(PUBLIC&&!['clan','msort','hsort','close','bgclose','profile','cwlview','hview'].includes(el.dataset.act))return;
   const fn=A[el.dataset.act];if(!fn)return;
   if(el.tagName==='A'&&el.dataset.act!=='tplgo')e.preventDefault();
   if(el.tagName==='TR'&&e.target.closest('input,select,button,a'))return;
@@ -1553,6 +1620,7 @@ const CH={
   cwlset(d,el){const cw=C().cwl;cw[d.f]=(d.f==='size'||d.f==='bonuses')?clampNum(el.value,0,50):el.value;commit()},
   cwlsort(d,el){UI.cwlSort=el.value;render()},
   logscope(d,el){UI.logScope=el.value;render()},
+  qsrc(d,el){UI.qSrc=el.value;render()},
   logfilter(d,el){UI.logFilter=el.value;render()},
   cwlround(d,el){C().cwl.rounds[Number(d.i)][d.f]=el.value;commit()},
   cwlcell(d,el){const r=C().cwl.rounds[Number(d.i)];if(el.value)r.cells[d.id]=el.value;else delete r.cells[d.id];commit()},
