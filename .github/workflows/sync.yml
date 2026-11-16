@@ -1,8 +1,9 @@
 name: Synchronizacja CoC
 
 on:
+  # Główny budzik to cron-job.org (workflow_dispatch). Harmonogram GitHuba to tylko zapas raz na godzinę.
   schedule:
-    - cron: '7,22,37,52 * * * *'
+    - cron: '17 * * * *'
   workflow_dispatch:
   push:
     branches: [main]
@@ -20,7 +21,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      # ref: main = zawsze najnowsza wersja repozytorium, także gdy przebieg czekał w kolejce na poprzedni
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -34,4 +38,13 @@ jobs:
           git config user.name "coc-sync-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add sync.json state.json
-          git diff --cached --quiet || (git commit -m "sync $(date -u +%Y-%m-%dT%H:%MZ)" && git pull --rebase && git push)
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "sync $(date -u +%Y-%m-%dT%H:%MZ)"
+          # Jeśli w międzyczasie ktoś coś zapisał, dołącz się do najnowszej wersji (świeże dane z tego przebiegu wygrywają) i spróbuj ponownie.
+          for i in 1 2 3; do
+            if git pull --rebase -X theirs origin main && git push origin HEAD:main; then exit 0; fi
+            git rebase --abort 2>/dev/null || true
+            sleep $((i * 5))
+          done
+          echo "Nie udało się zapisać wyniku po 3 próbach"
+          exit 1
